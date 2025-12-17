@@ -17,6 +17,7 @@ import CaseActions from '@/components/CaseActions';
 import OngoingManagement from '@/components/OngoingManagement';
 import MedicationReport from '@/components/MedicationReport';
 import Referral from '@/components/Referral';
+import FinalClaimSummary from '@/components/FinalClaimSummary';
 import { MatchedCondition } from '@/types';
 
 type WorkflowMode = 'new' | 'ongoing' | 'medication' | 'referral';
@@ -126,7 +127,9 @@ export default function Home() {
     }
     store.saveCase(patientName, patientId);
     setShowSaveModal(false);
-    alert('Case saved successfully!');
+
+    handleExportPDF();
+    alert('Case saved and exported successfully!');
   };
 
   const handleLoadCase = (caseId: string) => {
@@ -136,7 +139,7 @@ export default function Home() {
     if (loadedCase) {
       setPatientName(loadedCase.patientName);
       setPatientId(loadedCase.patientId);
-      store.setCurrentStep(4); // Jump to view mode
+      store.setCurrentStep(5);
     }
   };
 
@@ -187,6 +190,7 @@ export default function Home() {
     { id: 2, title: 'ICD Code' },
     { id: 3, title: 'Diagnostics' },
     { id: 4, title: 'Medication' },
+    { id: 5, title: 'Final Claim' },
   ];
 
   if (!isInitialized) {
@@ -217,24 +221,6 @@ export default function Home() {
             </div>
             
             <div className="flex items-center gap-3">
-              {store.currentStep >= 3 && currentWorkflow === 'new' && (
-                <>
-                  <button
-                    onClick={() => setShowSaveModal(true)}
-                    className="btn-secondary flex items-center gap-2"
-                  >
-                    <Save className="w-5 h-5" />
-                    Save Case
-                  </button>
-                  <button
-                    onClick={handleExportPDF}
-                    className="btn-primary flex items-center gap-2"
-                  >
-                    <FileDown className="w-5 h-5" />
-                    Export PDF
-                  </button>
-                </>
-              )}
               <button
                 onClick={store.toggleSidebar}
                 className="p-2 hover:bg-gray-100 rounded-lg"
@@ -340,18 +326,33 @@ export default function Home() {
               )}
 
               {store.currentStep === 4 && store.selectedCondition && (
+                <MedicationSelection
+                  condition={store.selectedCondition}
+                  selectedPlan={store.selectedPlan}
+                  medications={store.medications}
+                  medicationNote={store.medicationNote}
+                  onAddMedication={store.addMedication}
+                  onRemoveMedication={store.removeMedication}
+                  onSetMedicationNote={store.setMedicationNote}
+                  onSetPlan={store.setSelectedPlan}
+                />
+              )}
+
+              {store.currentStep === 5 && (
                 <>
-                  <MedicationSelection
-                    condition={store.selectedCondition}
-                    selectedPlan={store.selectedPlan}
+                  <FinalClaimSummary
+                    clinicalNote={store.clinicalNote}
+                    selectedCondition={store.selectedCondition!}
+                    selectedIcdCode={store.selectedIcdCode!}
+                    selectedIcdDescription={store.selectedIcdDescription!}
+                    diagnosticTreatments={store.diagnosticTreatments}
                     medications={store.medications}
                     medicationNote={store.medicationNote}
-                    onAddMedication={store.addMedication}
-                    onRemoveMedication={store.removeMedication}
-                    onSetMedicationNote={store.setMedicationNote}
-                    onSetPlan={store.setSelectedPlan}
+                    selectedPlan={store.selectedPlan}
+                    onConfirm={() => setShowSaveModal(true)}
+                    onBack={handlePreviousStep}
                   />
-                  
+
                   {store.currentCaseId && (
                     <CaseActions
                       onOngoingManagement={() => setCurrentWorkflow('ongoing')}
@@ -363,7 +364,7 @@ export default function Home() {
               )}
 
               {/* Navigation Buttons */}
-              {store.currentStep > 0 && store.currentStep < 4 && (
+              {store.currentStep > 0 && store.currentStep < 5 && (
                 <div className="flex justify-between">
                   <button
                     onClick={handlePreviousStep}
@@ -462,7 +463,10 @@ export default function Home() {
       {showSaveModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
-            <h3 className="text-xl font-bold mb-4">Save Patient Case</h3>
+            <h3 className="text-xl font-bold mb-4">Finalize Patient Case</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Enter patient details to save the case and export the final claim.
+            </p>
             <div className="space-y-4">
               <div>
                 <label className="label">Patient Name</label>
@@ -493,7 +497,7 @@ export default function Home() {
                 Cancel
               </button>
               <button onClick={handleSaveCase} className="btn-primary flex-1">
-                Save
+                Save & Export
               </button>
             </div>
           </div>
