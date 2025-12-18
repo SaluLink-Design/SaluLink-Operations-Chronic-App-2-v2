@@ -55,9 +55,21 @@ export default function Home() {
 
       const data = await response.json();
       store.setExtractedKeywords(data.extracted_keywords || []);
-      setMatchedConditions(data.matched_conditions || []);
-      
-      if (data.matched_conditions && data.matched_conditions.length > 0) {
+
+      const conditions = data.matched_conditions || [];
+      const deduplicatedConditions = conditions.reduce((acc: MatchedCondition[], current: MatchedCondition) => {
+        const existingIndex = acc.findIndex(item => item.condition === current.condition);
+        if (existingIndex === -1) {
+          acc.push(current);
+        } else if (current.similarityScore > acc[existingIndex].similarityScore) {
+          acc[existingIndex] = current;
+        }
+        return acc;
+      }, []);
+
+      setMatchedConditions(deduplicatedConditions);
+
+      if (deduplicatedConditions.length > 0) {
         store.setCurrentStep(1);
       }
     } catch (error) {
