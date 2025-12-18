@@ -172,18 +172,18 @@ def match_conditions(clinical_keywords, clinical_keyword_embeddings, threshold=0
     Match clinical keywords to chronic conditions
     """
     matched_conditions = {}
-    
+
     for i, keyword_embedding in enumerate(clinical_keyword_embeddings):
         best_match = None
         highest_similarity = -1.0
-        
+
         for condition_data in chronic_condition_embeddings:
             condition_embedding = condition_data['embedding']
             if condition_embedding is None:
                 continue
-            
+
             similarity = calculate_cosine_similarity(keyword_embedding, condition_embedding)
-            
+
             if similarity > highest_similarity and similarity >= threshold:
                 highest_similarity = similarity
                 best_match = {
@@ -192,16 +192,16 @@ def match_conditions(clinical_keywords, clinical_keyword_embeddings, threshold=0
                     'icd_description': condition_data['icd_description'],
                     'similarity_score': highest_similarity.item()
                 }
-        
+
         if best_match:
-            condition_key = (best_match['condition'], best_match['icd_code'])
-            if condition_key not in matched_conditions or \
-               best_match['similarity_score'] > matched_conditions[condition_key]['similarity_score']:
-                matched_conditions[condition_key] = best_match
-    
+            condition_name = best_match['condition']
+            if condition_name not in matched_conditions or \
+               best_match['similarity_score'] > matched_conditions[condition_name]['similarity_score']:
+                matched_conditions[condition_name] = best_match
+
     result_list = list(matched_conditions.values())
     result_list.sort(key=lambda x: x['similarity_score'], reverse=True)
-    
+
     return result_list[:5]  # Return top 5 matches
 
 

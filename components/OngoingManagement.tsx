@@ -125,26 +125,60 @@ const OngoingManagement = ({
                 
                 {/* Times Completed */}
                 <div className="mb-4">
-                  <label className="label">Times Completed</label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      min="1"
-                      max={treatment.maxCovered}
-                      value={treatment.timesCompleted}
-                      onChange={(e) =>
-                        onUpdateTreatment(index, {
-                          timesCompleted: Math.min(
-                            parseInt(e.target.value) || 1,
-                            treatment.maxCovered
-                          )
-                        })
-                      }
-                      className="input-field w-24"
-                    />
-                    <span className="text-sm text-gray-600">
-                      of {treatment.maxCovered} covered
-                    </span>
+                  <label className="label">Times Completed (Per Year)</label>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() =>
+                          onUpdateTreatment(index, {
+                            timesCompleted: Math.max(1, treatment.timesCompleted - 1)
+                          })
+                        }
+                        className="w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-700 rounded font-bold"
+                        disabled={treatment.timesCompleted <= 1}
+                      >
+                        -
+                      </button>
+                      <input
+                        type="number"
+                        min="1"
+                        max={treatment.maxCovered}
+                        value={treatment.timesCompleted}
+                        onChange={(e) =>
+                          onUpdateTreatment(index, {
+                            timesCompleted: Math.max(
+                              1,
+                              Math.min(
+                                parseInt(e.target.value) || 1,
+                                treatment.maxCovered
+                              )
+                            )
+                          })
+                        }
+                        className="input-field w-20 text-center"
+                      />
+                      <button
+                        onClick={() =>
+                          onUpdateTreatment(index, {
+                            timesCompleted: Math.min(treatment.maxCovered, treatment.timesCompleted + 1)
+                          })
+                        }
+                        className="w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-700 rounded font-bold"
+                        disabled={treatment.timesCompleted >= treatment.maxCovered}
+                      >
+                        +
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-600">
+                        of <span className="font-semibold text-primary-600">{treatment.maxCovered}</span> covered per year
+                      </span>
+                      {treatment.timesCompleted === treatment.maxCovered && (
+                        <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
+                          Max reached
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
                 
