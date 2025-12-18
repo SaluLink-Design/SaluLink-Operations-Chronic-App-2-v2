@@ -184,6 +184,14 @@ export default function Home() {
     setCurrentWorkflow('new');
   };
 
+  const handleNewClaim = () => {
+    store.resetWorkflow();
+    setPatientName('');
+    setPatientId('');
+    setMatchedConditions([]);
+    setCurrentWorkflow('new');
+  };
+
   const steps = [
     { id: 0, title: 'Clinical Note' },
     { id: 1, title: 'Condition' },
@@ -351,6 +359,7 @@ export default function Home() {
                     selectedPlan={store.selectedPlan}
                     onConfirm={() => setShowSaveModal(true)}
                     onBack={handlePreviousStep}
+                    onNewClaim={handleNewClaim}
                   />
 
                   {store.currentCaseId && (

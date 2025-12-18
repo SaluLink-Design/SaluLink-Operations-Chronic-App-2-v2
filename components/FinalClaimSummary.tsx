@@ -15,6 +15,7 @@ interface FinalClaimSummaryProps {
   selectedPlan: string;
   onConfirm: () => void;
   onBack: () => void;
+  onNewClaim: () => void;
 }
 
 const FinalClaimSummary = ({
@@ -28,6 +29,7 @@ const FinalClaimSummary = ({
   selectedPlan,
   onConfirm,
   onBack,
+  onNewClaim,
 }: FinalClaimSummaryProps) => {
   return (
     <div className="space-y-6">
@@ -189,19 +191,29 @@ const FinalClaimSummary = ({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-3 mt-8 pt-6 border-t border-gray-200">
+        <div className="space-y-3 mt-8 pt-6 border-t border-gray-200">
+          <div className="flex gap-3">
+            <button
+              onClick={onBack}
+              className="btn-secondary flex-1"
+            >
+              Back to Edit
+            </button>
+            <button
+              onClick={onConfirm}
+              className="btn-primary flex-1 flex items-center justify-center gap-2"
+            >
+              <CheckCircle className="w-5 h-5" />
+              Confirm and Finalize Claim
+            </button>
+          </div>
+
           <button
-            onClick={onBack}
-            className="btn-secondary flex-1"
+            onClick={onNewClaim}
+            className="w-full py-3 px-4 bg-gradient-to-r from-primary-600 to-blue-600 text-white font-semibold rounded-lg hover:from-primary-700 hover:to-blue-700 transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
           >
-            Back to Edit
-          </button>
-          <button
-            onClick={onConfirm}
-            className="btn-primary flex-1 flex items-center justify-center gap-2"
-          >
-            <CheckCircle className="w-5 h-5" />
-            Confirm and Finalize Claim
+            <FileText className="w-5 h-5" />
+            Start New Claim
           </button>
         </div>
       </div>
