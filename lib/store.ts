@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { PatientCase, TreatmentItem, SelectedMedication, MedicalPlan } from '@/types';
+import { PatientCase, TreatmentItem, SelectedMedication, MedicalPlan, MedicationReport, ReferralData } from '@/types';
 
 interface AppState {
   // Current workflow state
@@ -46,7 +46,10 @@ interface AppState {
   loadCase: (caseId: string) => void;
   updateCase: (caseId: string, updates: Partial<PatientCase>) => void;
   deleteCase: (caseId: string) => void;
-  
+
+  addMedicationReport: (caseId: string, report: Omit<MedicationReport, 'id' | 'createdAt'>) => void;
+  addReferral: (caseId: string, referral: Omit<ReferralData, 'id' | 'createdAt'>) => void;
+
   toggleSidebar: () => void;
   resetWorkflow: () => void;
 }
@@ -173,7 +176,45 @@ export const useStore = create<AppState>()(
         cases: state.cases.filter(c => c.id !== caseId),
         currentCaseId: state.currentCaseId === caseId ? null : state.currentCaseId,
       })),
-      
+
+      addMedicationReport: (caseId, report) => set((state) => ({
+        cases: state.cases.map(c =>
+          c.id === caseId
+            ? {
+                ...c,
+                medicationReports: [
+                  ...(c.medicationReports || []),
+                  {
+                    ...report,
+                    id: Date.now().toString(),
+                    createdAt: new Date(),
+                  },
+                ],
+                updatedAt: new Date(),
+              }
+            : c
+        ),
+      })),
+
+      addReferral: (caseId, referral) => set((state) => ({
+        cases: state.cases.map(c =>
+          c.id === caseId
+            ? {
+                ...c,
+                referrals: [
+                  ...(c.referrals || []),
+                  {
+                    ...referral,
+                    id: Date.now().toString(),
+                    createdAt: new Date(),
+                  },
+                ],
+                updatedAt: new Date(),
+              }
+            : c
+        ),
+      })),
+
       toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
       
       resetWorkflow: () => set({

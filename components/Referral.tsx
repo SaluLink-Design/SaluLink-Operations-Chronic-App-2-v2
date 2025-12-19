@@ -6,18 +6,18 @@ import { PatientCase } from '@/types';
 
 interface ReferralProps {
   patientCase: PatientCase;
-  onSave: (urgency: 'low' | 'medium' | 'high', referralNote: string, specialistType: string) => void;
+  onSave: (urgency: 'routine' | 'urgent' | 'emergency', referralNote: string, specialistType: string) => void;
 }
 
 const Referral = ({ patientCase, onSave }: ReferralProps) => {
-  const [urgency, setUrgency] = useState<'low' | 'medium' | 'high'>('medium');
+  const [urgency, setUrgency] = useState<'routine' | 'urgent' | 'emergency'>('routine');
   const [referralNote, setReferralNote] = useState('');
   const [specialistType, setSpecialistType] = useState('');
-  
+
   const urgencyOptions = [
-    { value: 'low', label: 'Low', color: 'bg-green-100 text-green-700 border-green-300' },
-    { value: 'medium', label: 'Medium', color: 'bg-yellow-100 text-yellow-700 border-yellow-300' },
-    { value: 'high', label: 'High', color: 'bg-red-100 text-red-700 border-red-300' },
+    { value: 'routine', label: 'Routine', color: 'bg-green-100 text-green-700 border-green-300' },
+    { value: 'urgent', label: 'Urgent', color: 'bg-yellow-100 text-yellow-700 border-yellow-300' },
+    { value: 'emergency', label: 'Emergency', color: 'bg-red-100 text-red-700 border-red-300' },
   ];
   
   return (
@@ -32,37 +32,96 @@ const Referral = ({ patientCase, onSave }: ReferralProps) => {
         </div>
       </div>
       
-      {/* Case Summary */}
-      <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-        <h3 className="font-semibold text-lg mb-3">Case Summary</h3>
-        <div className="space-y-2 text-sm">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-gray-600">Patient:</p>
-              <p className="font-medium">{patientCase.patientName}</p>
-            </div>
-            <div>
-              <p className="text-gray-600">Patient ID:</p>
-              <p className="font-medium">{patientCase.patientId}</p>
-            </div>
+      {/* Complete Case Summary */}
+      <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg space-y-4">
+        <h3 className="font-semibold text-lg">Complete Patient Case Summary</h3>
+
+        {/* Patient Info */}
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <p className="text-gray-600">Patient:</p>
+            <p className="font-medium">{patientCase.patientName}</p>
           </div>
           <div>
-            <p className="text-gray-600">Condition:</p>
-            <p className="font-medium">{patientCase.condition}</p>
-          </div>
-          <div>
-            <p className="text-gray-600">ICD-10 Code:</p>
-            <p className="font-medium">{patientCase.icdCode} - {patientCase.icdDescription}</p>
-          </div>
-          <div>
-            <p className="text-gray-600">Diagnostic Tests Completed:</p>
-            <p className="font-medium">{patientCase.diagnosticTreatments.length}</p>
-          </div>
-          <div>
-            <p className="text-gray-600">Current Medications:</p>
-            <p className="font-medium">{patientCase.medications.length}</p>
+            <p className="text-gray-600">Patient ID:</p>
+            <p className="font-medium">{patientCase.patientId}</p>
           </div>
         </div>
+
+        {/* Condition */}
+        <div className="text-sm">
+          <p className="text-gray-600">Condition:</p>
+          <p className="font-medium">{patientCase.condition}</p>
+          <p className="text-xs text-gray-500 mt-1">
+            ICD-10: {patientCase.icdCode} - {patientCase.icdDescription}
+          </p>
+        </div>
+
+        {/* Clinical Note */}
+        <div className="text-sm">
+          <p className="text-gray-600 mb-1">Clinical Note:</p>
+          <div className="p-3 bg-white border border-gray-200 rounded">
+            <p className="text-gray-900 whitespace-pre-wrap">{patientCase.clinicalNote}</p>
+          </div>
+        </div>
+
+        {/* Diagnostic Tests */}
+        {patientCase.diagnosticTreatments.length > 0 && (
+          <div className="text-sm">
+            <p className="text-gray-600 mb-2">Diagnostic Tests Completed:</p>
+            <div className="space-y-1">
+              {patientCase.diagnosticTreatments.map((test, i) => (
+                <div key={i} className="p-2 bg-white border border-gray-200 rounded text-xs">
+                  <p className="font-medium">{test.description}</p>
+                  <p className="text-gray-500">Code: {test.code}</p>
+                  {test.documentation.notes && (
+                    <p className="text-gray-600 mt-1">{test.documentation.notes}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Ongoing Management */}
+        {patientCase.ongoingTreatments.length > 0 && (
+          <div className="text-sm">
+            <p className="text-gray-600 mb-2">Ongoing Management:</p>
+            <div className="space-y-1">
+              {patientCase.ongoingTreatments.map((treatment, i) => (
+                <div key={i} className="p-2 bg-white border border-gray-200 rounded text-xs">
+                  <p className="font-medium">{treatment.description}</p>
+                  <p className="text-gray-500">Code: {treatment.code} | Completed: {treatment.timesCompleted}x per year</p>
+                  {treatment.documentation.notes && (
+                    <p className="text-gray-600 mt-1">{treatment.documentation.notes}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Current Medications */}
+        {patientCase.medications.length > 0 && (
+          <div className="text-sm">
+            <p className="text-gray-600 mb-2">Current Medications:</p>
+            <div className="space-y-1">
+              {patientCase.medications.map((med, i) => (
+                <div key={i} className="p-2 bg-white border border-gray-200 rounded text-xs">
+                  <p className="font-medium">{med.medicineNameAndStrength}</p>
+                  <p className="text-gray-500">{med.activeIngredient}</p>
+                  <p className="text-blue-600 font-medium">CDA: {med.cdaAmount}</p>
+                </div>
+              ))}
+            </div>
+            {patientCase.medicationNote && (
+              <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs">
+                <p className="font-medium text-blue-900">Registration Note:</p>
+                <p className="text-blue-700">{patientCase.medicationNote}</p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
       
       {/* Specialist Type */}

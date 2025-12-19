@@ -73,21 +73,27 @@ export interface PatientCase {
   medicationNote: string;
   plan: MedicalPlan;
   status: 'draft' | 'diagnostic' | 'ongoing' | 'completed';
+  medicationReports?: MedicationReport[];
+  referrals?: ReferralData[];
 }
 
 export interface ReferralData {
+  id: string;
   caseId: string;
-  urgency: 'low' | 'medium' | 'high';
+  urgency: 'routine' | 'urgent' | 'emergency';
   referralNote: string;
   specialistType: string;
+  createdAt: Date;
 }
 
 export interface MedicationReport {
+  id: string;
   caseId: string;
   originalMedications: SelectedMedication[];
   followUpNotes: string;
-  newMedications?: SelectedMedication[];
-  motivationLetter?: string;
+  newMedications: SelectedMedication[];
+  motivationLetter: string;
+  createdAt: Date;
 }
 
 export interface AnalysisResult {

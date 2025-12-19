@@ -176,23 +176,44 @@ export default function Home() {
     if (store.currentCaseId) {
       const currentCase = store.cases.find(c => c.id === store.currentCaseId);
       if (currentCase) {
-        const pdfService = new PDFExportService();
-        pdfService.exportMedicationReport(currentCase, followUpNotes, newMeds, motivationLetter);
+        store.addMedicationReport(store.currentCaseId, {
+          caseId: store.currentCaseId,
+          originalMedications: currentCase.medications,
+          followUpNotes,
+          newMedications: newMeds || [],
+          motivationLetter: motivationLetter || '',
+        });
+
+        const updatedCase = store.cases.find(c => c.id === store.currentCaseId);
+        if (updatedCase) {
+          const pdfService = new PDFExportService();
+          pdfService.exportMedicationReport(updatedCase, followUpNotes, newMeds, motivationLetter);
+        }
       }
     }
-    alert('Medication report exported!');
+    alert('Medication report saved and exported!');
     setCurrentWorkflow('new');
   };
 
-  const handleReferralSave = (urgency: any, referralNote: string, specialistType: string) => {
+  const handleReferralSave = (urgency: 'routine' | 'urgent' | 'emergency', referralNote: string, specialistType: string) => {
     if (store.currentCaseId) {
       const currentCase = store.cases.find(c => c.id === store.currentCaseId);
       if (currentCase) {
-        const pdfService = new PDFExportService();
-        pdfService.exportReferral(currentCase, urgency, referralNote, specialistType);
+        store.addReferral(store.currentCaseId, {
+          caseId: store.currentCaseId,
+          urgency,
+          referralNote,
+          specialistType,
+        });
+
+        const updatedCase = store.cases.find(c => c.id === store.currentCaseId);
+        if (updatedCase) {
+          const pdfService = new PDFExportService();
+          pdfService.exportReferral(updatedCase, urgency, referralNote, specialistType);
+        }
       }
     }
-    alert('Referral exported!');
+    alert('Referral saved and exported!');
     setCurrentWorkflow('new');
   };
 
