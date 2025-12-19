@@ -49,27 +49,29 @@ export class DataService {
       // Process treatment basket with proper column mapping
       let currentCondition = '';
       this.treatmentBasket = basketParsed.data
-        .slice(1) // Skip header row
+        .slice(1) // Skip description row
         .map((row: any) => {
           // Forward fill condition
           if (row['CONDITION']) {
             currentCondition = row['CONDITION'];
           }
-          
-          return {
+
+          const item = {
             condition: currentCondition,
             diagnosticBasket: {
               description: row['DIAGNOSTIC BASKET'] || '',
-              code: row['DIAGNOSTIC BASKET.1'] || '',
-              covered: row['DIAGNOSTIC BASKET.2'] || '',
+              code: row['DIAGNOSTIC BASKET_1'] || '',
+              covered: row['DIAGNOSTIC BASKET_2'] || '',
             },
             ongoingManagementBasket: {
               description: row['ONGOING MANAGEMENT BASKET'] || '',
-              code: row['ONGOING MANAGEMENT BASKET.1'] || '',
-              covered: row['ONGOING MANAGEMENT BASKET.2'] || '',
+              code: row['ONGOING MANAGEMENT BASKET_1'] || '',
+              covered: row['ONGOING MANAGEMENT BASKET_2'] || '',
             },
-            specialists: row['Unnamed: 7'] || '',
+            specialists: row[''] || '',
           };
+
+          return item;
         })
         .filter(item => item.condition);
 
