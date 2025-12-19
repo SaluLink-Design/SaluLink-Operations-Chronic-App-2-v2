@@ -32,29 +32,39 @@ const OngoingManagement = ({
   
   const handleAddTreatment = () => {
     if (!selectedItem) return;
-    
-    const item = basketItems.find(b => b.ongoingManagementBasket.description === selectedItem);
+
+    const item = basketItems.find(b => b.ongoingManagementBasket.description.trim() === selectedItem.trim());
     if (!item) return;
-    
+
+    const existingTreatment = treatments.find(t => t.description.trim() === item.ongoingManagementBasket.description.trim());
+    if (existingTreatment) {
+      alert('This treatment has already been added.');
+      setSelectedItem(null);
+      return;
+    }
+
+    const coverageValue = item.ongoingManagementBasket.covered?.trim();
+    const maxCovered = coverageValue && !isNaN(parseInt(coverageValue)) ? parseInt(coverageValue) : 1;
+
     const newTreatment: TreatmentItem = {
-      description: item.ongoingManagementBasket.description,
-      code: item.ongoingManagementBasket.code,
-      maxCovered: parseInt(item.ongoingManagementBasket.covered) || 1,
+      description: item.ongoingManagementBasket.description.trim(),
+      code: item.ongoingManagementBasket.code.trim(),
+      maxCovered: maxCovered,
       timesCompleted: 1,
       documentation: {
         notes: '',
         images: []
       }
     };
-    
+
     onAddTreatment(newTreatment);
     setSelectedItem(null);
   };
   
-  const availableItems = basketItems.filter(item =>
-    !treatments.some(t => t.description === item.ongoingManagementBasket.description) &&
-    item.ongoingManagementBasket.description
-  );
+  const availableItems = basketItems.filter(item => {
+    const description = item.ongoingManagementBasket.description?.trim();
+    return description && !treatments.some(t => t.description.trim() === description);
+  });
   
   return (
     <div className="space-y-6">
@@ -79,11 +89,18 @@ const OngoingManagement = ({
               onChange={(e) => setSelectedItem(e.target.value)}
             >
               <option value="">Select an ongoing treatment...</option>
-              {availableItems.map((item, index) => (
-                <option key={index} value={item.ongoingManagementBasket.description}>
-                  {item.ongoingManagementBasket.description} ({item.ongoingManagementBasket.code}) - Max: {item.ongoingManagementBasket.covered}
-                </option>
-              ))}
+              {availableItems.map((item, index) => {
+                const description = item.ongoingManagementBasket.description?.trim();
+                const code = item.ongoingManagementBasket.code?.trim();
+                const coverageValue = item.ongoingManagementBasket.covered?.trim();
+                const maxCovered = coverageValue && !isNaN(parseInt(coverageValue)) ? parseInt(coverageValue) : 1;
+
+                return (
+                  <option key={index} value={description}>
+                    {description} ({code}) - Max: {maxCovered} per year
+                  </option>
+                );
+              })}
             </select>
             <button
               className="btn-primary"

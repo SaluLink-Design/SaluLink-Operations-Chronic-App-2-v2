@@ -103,9 +103,20 @@ export class DataService {
   }
 
   static getTreatmentBasketForCondition(condition: string): TreatmentBasketItem[] {
-    return this.treatmentBasket.filter(t => 
+    const items = this.treatmentBasket.filter(t =>
       t.condition.toLowerCase() === condition.toLowerCase()
     );
+
+    const uniqueItems = new Map<string, TreatmentBasketItem>();
+
+    items.forEach(item => {
+      const key = item.ongoingManagementBasket.description.trim();
+      if (key && !uniqueItems.has(key)) {
+        uniqueItems.set(key, item);
+      }
+    });
+
+    return Array.from(uniqueItems.values());
   }
 
   static getUniqueMedicineClasses(condition: string): string[] {
