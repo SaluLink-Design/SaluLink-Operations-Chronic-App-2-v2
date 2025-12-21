@@ -122,6 +122,38 @@ const Referral = ({ patientCase, onSave }: ReferralProps) => {
             )}
           </div>
         )}
+
+        {/* Medication Reports History */}
+        {patientCase.medicationReports && patientCase.medicationReports.length > 0 && (
+          <div className="text-sm">
+            <p className="text-gray-600 mb-2">Medication Updates History:</p>
+            <div className="space-y-2">
+              {patientCase.medicationReports.map((report, i) => (
+                <div key={i} className="p-3 bg-purple-50 border border-purple-200 rounded">
+                  <p className="font-medium text-purple-900 text-xs mb-1">
+                    Report #{i + 1} - {new Date(report.createdAt).toLocaleDateString()}
+                  </p>
+                  {report.followUpNotes && (
+                    <p className="text-xs text-gray-700 mb-2">Follow-up: {report.followUpNotes}</p>
+                  )}
+                  {report.newMedications.length > 0 && (
+                    <div className="mt-2">
+                      <p className="text-xs font-medium text-purple-900 mb-1">New Medications Added:</p>
+                      {report.newMedications.map((med, j) => (
+                        <div key={j} className="ml-2 text-xs text-gray-700">
+                          • {med.medicineNameAndStrength} ({med.activeIngredient})
+                        </div>
+                      ))}
+                      {report.motivationLetter && (
+                        <p className="mt-1 text-xs text-gray-600 italic">Reason: {report.motivationLetter}</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
       
       {/* Specialist Type */}

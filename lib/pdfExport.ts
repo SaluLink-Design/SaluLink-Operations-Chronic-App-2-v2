@@ -72,6 +72,17 @@ export class PDFExportService {
     this.yPosition += 10;
   }
 
+  private async addImage(imageUrl: string, maxWidth: number = 80, maxHeight: number = 80) {
+    try {
+      this.checkPageBreak(maxHeight + 10);
+      this.doc.addImage(imageUrl, 'JPEG', this.margin + 10, this.yPosition, maxWidth, maxHeight);
+      this.yPosition += maxHeight + 5;
+    } catch (error) {
+      console.error('Failed to add image to PDF:', error);
+      this.addText('  [Image attachment]', 10);
+    }
+  }
+
   exportInitialClaim(patientCase: PatientCase): void {
     // Header
     this.addTitle('SaluLink Chronic Treatment Claim');
@@ -110,6 +121,12 @@ export class PDFExportService {
         this.addBoldText('  Times Completed: ', `${treatment.timesCompleted} of ${treatment.maxCovered}`, 10);
         if (treatment.documentation.notes) {
           this.addText(`  Notes: ${treatment.documentation.notes}`, 10);
+        }
+        if (treatment.documentation.images && treatment.documentation.images.length > 0) {
+          this.addText(`  Attached Images: ${treatment.documentation.images.length}`, 10);
+          treatment.documentation.images.forEach((img, imgIdx) => {
+            this.addImage(img, 60, 60);
+          });
         }
         this.yPosition += 3;
       });
@@ -170,6 +187,12 @@ export class PDFExportService {
         this.addBoldText('  Times Completed: ', `${treatment.timesCompleted} of ${treatment.maxCovered}`, 10);
         if (treatment.documentation.notes) {
           this.addText(`  Notes: ${treatment.documentation.notes}`, 10);
+        }
+        if (treatment.documentation.images && treatment.documentation.images.length > 0) {
+          this.addText(`  Attached Images: ${treatment.documentation.images.length}`, 10);
+          treatment.documentation.images.forEach((img, imgIdx) => {
+            this.addImage(img, 60, 60);
+          });
         }
         this.yPosition += 3;
       });
@@ -274,12 +297,79 @@ export class PDFExportService {
     this.yPosition += 5;
     this.addDivider();
 
-    // Case Summary
-    this.addSubtitle('Case Summary');
-    this.addBoldText('Diagnostic Tests: ', `${patientCase.diagnosticTreatments.length} completed`, 5);
-    this.addBoldText('Current Medications: ', `${patientCase.medications.length} prescribed`, 5);
+    // Clinical Note
+    this.addSubtitle('Original Clinical Note');
+    this.addText(patientCase.clinicalNote, 5);
     this.yPosition += 5;
     this.addDivider();
+
+    // Diagnostic Treatments
+    if (patientCase.diagnosticTreatments.length > 0) {
+      this.addSubtitle('Diagnostic Tests Completed');
+      patientCase.diagnosticTreatments.forEach((treatment, index) => {
+        this.addText(`${index + 1}. ${treatment.description} (${treatment.code})`, 5);
+        this.addBoldText('  Completed: ', `${treatment.timesCompleted}x`, 10);
+        if (treatment.documentation.notes) {
+          this.addText(`  Findings: ${treatment.documentation.notes}`, 10);
+        }
+        this.yPosition += 2;
+      });
+      this.addDivider();
+    }
+
+    // Ongoing Management
+    if (patientCase.ongoingTreatments.length > 0) {
+      this.addSubtitle('Ongoing Management');
+      patientCase.ongoingTreatments.forEach((treatment, index) => {
+        this.addText(`${index + 1}. ${treatment.description} (${treatment.code})`, 5);
+        this.addBoldText('  Frequency: ', `${treatment.timesCompleted}x per year`, 10);
+        if (treatment.documentation.notes) {
+          this.addText(`  Notes: ${treatment.documentation.notes}`, 10);
+        }
+        this.yPosition += 2;
+      });
+      this.addDivider();
+    }
+
+    // Current Medications
+    if (patientCase.medications.length > 0) {
+      this.addSubtitle('Current Medications');
+      patientCase.medications.forEach((med, index) => {
+        this.addText(`${index + 1}. ${med.medicineNameAndStrength}`, 5);
+        this.addText(`   ${med.activeIngredient}`, 10);
+        this.addBoldText('   CDA Amount: ', med.cdaAmount, 10);
+        this.yPosition += 2;
+      });
+
+      if (patientCase.medicationNote) {
+        this.yPosition += 3;
+        this.addText('Registration Note:', 5);
+        this.addText(patientCase.medicationNote, 10);
+      }
+      this.addDivider();
+    }
+
+    // Medication Reports History
+    if (patientCase.medicationReports && patientCase.medicationReports.length > 0) {
+      this.addSubtitle('Medication Updates History');
+      patientCase.medicationReports.forEach((report, index) => {
+        this.addText(`Report #${index + 1} - ${format(new Date(report.createdAt), 'MMM dd, yyyy')}`, 5);
+        if (report.followUpNotes) {
+          this.addText(`Follow-up: ${report.followUpNotes}`, 10);
+        }
+        if (report.newMedications.length > 0) {
+          this.addText('New Medications Added:', 10);
+          report.newMedications.forEach((med) => {
+            this.addText(`• ${med.medicineNameAndStrength} (${med.activeIngredient})`, 15);
+          });
+          if (report.motivationLetter) {
+            this.addText(`Reason: ${report.motivationLetter}`, 10);
+          }
+        }
+        this.yPosition += 3;
+      });
+      this.addDivider();
+    }
 
     // Referral Motivation
     this.addSubtitle('Referral Motivation');

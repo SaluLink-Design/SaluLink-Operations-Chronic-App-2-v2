@@ -157,18 +157,25 @@ export default function Home() {
 
   const handleOngoingManagementSave = () => {
     if (store.currentCaseId) {
-      store.updateCase(store.currentCaseId, {
-        ongoingTreatments: store.ongoingTreatments,
-        status: 'ongoing',
-      });
-      
       const currentCase = store.cases.find(c => c.id === store.currentCaseId);
       if (currentCase) {
+        const updatedCase = {
+          ...currentCase,
+          ongoingTreatments: store.ongoingTreatments,
+          status: 'ongoing' as const,
+          updatedAt: new Date(),
+        };
+
+        store.updateCase(store.currentCaseId, {
+          ongoingTreatments: store.ongoingTreatments,
+          status: 'ongoing',
+        });
+
         const pdfService = new PDFExportService();
-        pdfService.exportOngoingManagement(currentCase);
+        pdfService.exportOngoingManagement(updatedCase);
       }
     }
-    alert('Ongoing management saved!');
+    alert('Ongoing management saved and exported!');
     setCurrentWorkflow('new');
   };
 
@@ -176,6 +183,23 @@ export default function Home() {
     if (store.currentCaseId) {
       const currentCase = store.cases.find(c => c.id === store.currentCaseId);
       if (currentCase) {
+        const newMedicationReport = {
+          id: Date.now().toString(),
+          caseId: store.currentCaseId,
+          originalMedications: currentCase.medications,
+          followUpNotes,
+          newMedications: newMeds || [],
+          motivationLetter: motivationLetter || '',
+          createdAt: new Date(),
+        };
+
+        const updatedCase = {
+          ...currentCase,
+          medicationReports: [...(currentCase.medicationReports || []), newMedicationReport],
+          medications: newMeds && newMeds.length > 0 ? [...currentCase.medications, ...newMeds] : currentCase.medications,
+          updatedAt: new Date(),
+        };
+
         store.addMedicationReport(store.currentCaseId, {
           caseId: store.currentCaseId,
           originalMedications: currentCase.medications,
@@ -184,11 +208,14 @@ export default function Home() {
           motivationLetter: motivationLetter || '',
         });
 
-        const updatedCase = store.cases.find(c => c.id === store.currentCaseId);
-        if (updatedCase) {
-          const pdfService = new PDFExportService();
-          pdfService.exportMedicationReport(updatedCase, followUpNotes, newMeds, motivationLetter);
+        if (newMeds && newMeds.length > 0) {
+          store.updateCase(store.currentCaseId, {
+            medications: [...currentCase.medications, ...newMeds],
+          });
         }
+
+        const pdfService = new PDFExportService();
+        pdfService.exportMedicationReport(updatedCase, followUpNotes, newMeds, motivationLetter);
       }
     }
     alert('Medication report saved and exported!');
@@ -199,6 +226,21 @@ export default function Home() {
     if (store.currentCaseId) {
       const currentCase = store.cases.find(c => c.id === store.currentCaseId);
       if (currentCase) {
+        const newReferral = {
+          id: Date.now().toString(),
+          caseId: store.currentCaseId,
+          urgency,
+          referralNote,
+          specialistType,
+          createdAt: new Date(),
+        };
+
+        const updatedCase = {
+          ...currentCase,
+          referrals: [...(currentCase.referrals || []), newReferral],
+          updatedAt: new Date(),
+        };
+
         store.addReferral(store.currentCaseId, {
           caseId: store.currentCaseId,
           urgency,
@@ -206,11 +248,8 @@ export default function Home() {
           specialistType,
         });
 
-        const updatedCase = store.cases.find(c => c.id === store.currentCaseId);
-        if (updatedCase) {
-          const pdfService = new PDFExportService();
-          pdfService.exportReferral(updatedCase, urgency, referralNote, specialistType);
-        }
+        const pdfService = new PDFExportService();
+        pdfService.exportReferral(updatedCase, urgency, referralNote, specialistType);
       }
     }
     alert('Referral saved and exported!');
