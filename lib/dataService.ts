@@ -112,9 +112,23 @@ export class DataService {
     const uniqueItems = new Map<string, TreatmentBasketItem>();
 
     items.forEach(item => {
-      const key = item.ongoingManagementBasket.description.trim();
-      if (key && !uniqueItems.has(key)) {
-        uniqueItems.set(key, item);
+      const description = item.ongoingManagementBasket.description.trim();
+      const code = item.ongoingManagementBasket.code.trim();
+
+      if (description && code) {
+        const key = `${description}|${code}`;
+
+        if (!uniqueItems.has(key)) {
+          uniqueItems.set(key, item);
+        } else {
+          const existing = uniqueItems.get(key);
+          const existingCovered = parseInt(existing?.ongoingManagementBasket.covered || '0');
+          const currentCovered = parseInt(item.ongoingManagementBasket.covered || '0');
+
+          if (currentCovered > existingCovered) {
+            uniqueItems.set(key, item);
+          }
+        }
       }
     });
 

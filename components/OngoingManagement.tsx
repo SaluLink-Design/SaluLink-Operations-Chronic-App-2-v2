@@ -33,10 +33,17 @@ const OngoingManagement = ({
   const handleAddTreatment = () => {
     if (!selectedItem) return;
 
-    const item = basketItems.find(b => b.ongoingManagementBasket.description.trim() === selectedItem.trim());
+    const [selectedDesc, selectedCode] = selectedItem.split('|||');
+    const item = basketItems.find(b =>
+      b.ongoingManagementBasket.description.trim() === selectedDesc &&
+      b.ongoingManagementBasket.code.trim() === selectedCode
+    );
     if (!item) return;
 
-    const existingTreatment = treatments.find(t => t.description.trim() === item.ongoingManagementBasket.description.trim());
+    const existingTreatment = treatments.find(t =>
+      t.description.trim() === item.ongoingManagementBasket.description.trim() &&
+      t.code.trim() === item.ongoingManagementBasket.code.trim()
+    );
     if (existingTreatment) {
       alert('This treatment has already been added.');
       setSelectedItem(null);
@@ -63,7 +70,10 @@ const OngoingManagement = ({
   
   const availableItems = basketItems.filter(item => {
     const description = item.ongoingManagementBasket.description?.trim();
-    return description && !treatments.some(t => t.description.trim() === description);
+    const code = item.ongoingManagementBasket.code?.trim();
+    return description && code && !treatments.some(t =>
+      t.description.trim() === description && t.code.trim() === code
+    );
   });
   
   return (
@@ -94,9 +104,10 @@ const OngoingManagement = ({
                 const code = item.ongoingManagementBasket.code?.trim();
                 const coverageValue = item.ongoingManagementBasket.covered?.trim();
                 const maxCovered = coverageValue && !isNaN(parseInt(coverageValue)) ? parseInt(coverageValue) : 1;
+                const optionValue = `${description}|||${code}`;
 
                 return (
-                  <option key={index} value={description}>
+                  <option key={index} value={optionValue}>
                     {description} ({code}) - Max: {maxCovered} per year
                   </option>
                 );
