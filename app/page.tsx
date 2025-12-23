@@ -426,6 +426,7 @@ export default function Home() {
                     selectedIcdCode={store.selectedIcdCode!}
                     selectedIcdDescription={store.selectedIcdDescription!}
                     diagnosticTreatments={store.diagnosticTreatments}
+                    ongoingTreatments={store.ongoingTreatments}
                     medications={store.medications}
                     medicationNote={store.medicationNote}
                     selectedPlan={store.selectedPlan}

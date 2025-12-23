@@ -10,6 +10,7 @@ interface FinalClaimSummaryProps {
   selectedIcdCode: string;
   selectedIcdDescription: string;
   diagnosticTreatments: any[];
+  ongoingTreatments: any[];
   medications: any[];
   medicationNote: string;
   selectedPlan: string;
@@ -24,6 +25,7 @@ const FinalClaimSummary = ({
   selectedIcdCode,
   selectedIcdDescription,
   diagnosticTreatments,
+  ongoingTreatments,
   medications,
   medicationNote,
   selectedPlan,
@@ -135,6 +137,39 @@ const FinalClaimSummary = ({
             </div>
           )}
 
+          {/* Ongoing Management Treatments */}
+          {ongoingTreatments.length > 0 && (
+            <div className="bg-white border border-gray-200 rounded-lg p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <Stethoscope className="w-5 h-5 text-gray-600" />
+                <h3 className="font-semibold text-lg text-gray-900">Ongoing Management</h3>
+              </div>
+              <div className="space-y-3">
+                {ongoingTreatments.map((treatment, index) => (
+                  <div key={index} className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-900">{treatment.description}</p>
+                        <p className="text-sm text-gray-600 mt-1">Code: {treatment.code}</p>
+                      </div>
+                      <div className="text-right">
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-700">
+                          {treatment.timesCompleted} of {treatment.maxCovered}
+                        </span>
+                      </div>
+                    </div>
+                    {treatment.documentation?.notes && (
+                      <div className="mt-3 pt-3 border-t border-blue-200">
+                        <p className="text-sm font-medium text-blue-600 mb-1">Documentation:</p>
+                        <p className="text-sm text-gray-700">{treatment.documentation.notes}</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Selected Medications */}
           {medications.length > 0 && (
             <div className="bg-white border border-gray-200 rounded-lg p-5">
@@ -174,17 +209,21 @@ const FinalClaimSummary = ({
         {/* Summary Stats */}
         <div className="mt-6 bg-gradient-to-r from-primary-50 to-blue-50 border border-primary-200 rounded-lg p-5">
           <h3 className="font-semibold text-lg text-gray-900 mb-3">Claim Summary</h3>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-4 gap-4">
             <div className="text-center">
               <div className="text-3xl font-bold text-primary-600">{diagnosticTreatments.length}</div>
               <div className="text-sm text-gray-600 mt-1">Diagnostic Tests</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-blue-600">{ongoingTreatments.length}</div>
+              <div className="text-sm text-gray-600 mt-1">Ongoing Treatments</div>
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-green-600">{medications.length}</div>
               <div className="text-sm text-gray-600 mt-1">Medications</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-blue-600">1</div>
+              <div className="text-3xl font-bold text-orange-600">1</div>
               <div className="text-sm text-gray-600 mt-1">Chronic Condition</div>
             </div>
           </div>
