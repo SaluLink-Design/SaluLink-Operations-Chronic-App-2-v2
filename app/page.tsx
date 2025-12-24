@@ -31,6 +31,7 @@ export default function Home() {
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [patientName, setPatientName] = useState('');
   const [patientId, setPatientId] = useState('');
+  const [showCaseActions, setShowCaseActions] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -139,6 +140,7 @@ export default function Home() {
     }
     store.saveCase(patientName, patientId);
     setShowSaveModal(false);
+    setShowCaseActions(false);
 
     handleExportPDF();
     alert('Case saved and exported successfully!');
@@ -147,6 +149,7 @@ export default function Home() {
   const handleLoadCase = (caseId: string) => {
     store.loadCase(caseId);
     setCurrentWorkflow('new');
+    setShowCaseActions(true);
     const loadedCase = store.cases.find(c => c.id === caseId);
     if (loadedCase) {
       setPatientName(loadedCase.patientName);
@@ -262,6 +265,7 @@ export default function Home() {
     setPatientId('');
     setMatchedConditions([]);
     setCurrentWorkflow('new');
+    setShowCaseActions(false);
   };
 
   const steps = [
@@ -435,7 +439,7 @@ export default function Home() {
                     onNewClaim={handleNewClaim}
                   />
 
-                  {store.currentCaseId && (
+                  {showCaseActions && store.currentCaseId && (
                     <CaseActions
                       onOngoingManagement={() => setCurrentWorkflow('ongoing')}
                       onMedicationReport={() => setCurrentWorkflow('medication')}

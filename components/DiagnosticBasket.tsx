@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, Upload, FileText } from 'lucide-react';
+import { Plus, Trash2, Upload, FileText, X } from 'lucide-react';
 import { TreatmentBasketItem, TreatmentItem } from '@/types';
 import { DataService } from '@/lib/dataService';
 
@@ -148,7 +148,7 @@ const DiagnosticBasket = ({
               {/* Documentation */}
               <div className="space-y-3">
                 <label className="label">Documentation</label>
-                
+
                 <textarea
                   className="textarea-field"
                   rows={3}
@@ -163,16 +163,67 @@ const DiagnosticBasket = ({
                     })
                   }
                 />
-                
-                <div className="flex items-center gap-2">
-                  <button className="btn-secondary text-sm flex items-center gap-2">
-                    <Upload className="w-4 h-4" />
-                    Upload Images
-                  </button>
+
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="file"
+                      id={`file-upload-${index}`}
+                      accept="image/*,.pdf,.doc,.docx"
+                      multiple
+                      className="hidden"
+                      onChange={(e) => {
+                        const files = e.target.files;
+                        if (files) {
+                          const fileNames = Array.from(files).map(f => f.name);
+                          onUpdateTreatment(index, {
+                            documentation: {
+                              ...treatment.documentation,
+                              images: [...treatment.documentation.images, ...fileNames]
+                            }
+                          });
+                        }
+                      }}
+                    />
+                    <label
+                      htmlFor={`file-upload-${index}`}
+                      className="btn-secondary text-sm flex items-center gap-2 cursor-pointer"
+                    >
+                      <Upload className="w-4 h-4" />
+                      Upload Files
+                    </label>
+                    {treatment.documentation.images.length > 0 && (
+                      <span className="text-sm text-gray-600">
+                        {treatment.documentation.images.length} file(s) uploaded
+                      </span>
+                    )}
+                  </div>
+
                   {treatment.documentation.images.length > 0 && (
-                    <span className="text-sm text-gray-600">
-                      {treatment.documentation.images.length} file(s) uploaded
-                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {treatment.documentation.images.map((fileName, fileIndex) => (
+                        <div
+                          key={fileIndex}
+                          className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded text-xs"
+                        >
+                          <span className="max-w-[150px] truncate">{fileName}</span>
+                          <button
+                            onClick={() => {
+                              const newImages = treatment.documentation.images.filter((_, i) => i !== fileIndex);
+                              onUpdateTreatment(index, {
+                                documentation: {
+                                  ...treatment.documentation,
+                                  images: newImages
+                                }
+                              });
+                            }}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
               </div>
