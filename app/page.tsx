@@ -13,6 +13,7 @@ import IcdCodeSelection from '@/components/IcdCodeSelection';
 import DiagnosticBasket from '@/components/DiagnosticBasket';
 import MedicationSelection from '@/components/MedicationSelection';
 import Sidebar from '@/components/Sidebar';
+import AllCasesView from '@/components/AllCasesView';
 import CaseActions from '@/components/CaseActions';
 import OngoingManagement from '@/components/OngoingManagement';
 import MedicationReport from '@/components/MedicationReport';
@@ -32,6 +33,7 @@ export default function Home() {
   const [patientName, setPatientName] = useState('');
   const [patientId, setPatientId] = useState('');
   const [showCaseActions, setShowCaseActions] = useState(false);
+  const [showAllCases, setShowAllCases] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -290,6 +292,15 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {showAllCases && (
+        <AllCasesView
+          cases={store.cases}
+          onLoadCase={handleLoadCase}
+          onDeleteCase={store.deleteCase}
+          onClose={() => setShowAllCases(false)}
+        />
+      )}
+
       {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -322,6 +333,7 @@ export default function Home() {
         cases={store.cases}
         onLoadCase={handleLoadCase}
         onDeleteCase={store.deleteCase}
+        onViewAll={() => setShowAllCases(true)}
       />
 
       {/* Main Content */}

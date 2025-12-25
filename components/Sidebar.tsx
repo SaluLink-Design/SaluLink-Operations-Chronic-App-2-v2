@@ -1,6 +1,6 @@
 'use client';
 
-import { X, FolderOpen, Clock, CheckCircle } from 'lucide-react';
+import { X, FolderOpen, Clock, CheckCircle, LayoutGrid } from 'lucide-react';
 import { PatientCase } from '@/types';
 import { format } from 'date-fns';
 
@@ -10,9 +10,10 @@ interface SidebarProps {
   cases: PatientCase[];
   onLoadCase: (caseId: string) => void;
   onDeleteCase: (caseId: string) => void;
+  onViewAll: () => void;
 }
 
-const Sidebar = ({ isOpen, onClose, cases, onLoadCase, onDeleteCase }: SidebarProps) => {
+const Sidebar = ({ isOpen, onClose, cases, onLoadCase, onDeleteCase, onViewAll }: SidebarProps) => {
   const getStatusColor = (status: PatientCase['status']) => {
     switch (status) {
       case 'completed':
@@ -55,16 +56,29 @@ const Sidebar = ({ isOpen, onClose, cases, onLoadCase, onDeleteCase }: SidebarPr
       >
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">Patient Cases</h2>
-              <p className="text-sm text-gray-500">{cases.length} case(s)</p>
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Patient Cases</h2>
+                <p className="text-sm text-gray-500">{cases.length} case(s)</p>
+              </div>
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-600" />
+              </button>
             </div>
+
             <button
-              onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              onClick={() => {
+                onViewAll();
+                onClose();
+              }}
+              className="w-full px-4 py-3 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 transition-colors flex items-center justify-center gap-2"
             >
-              <X className="w-5 h-5 text-gray-600" />
+              <LayoutGrid className="w-5 h-5" />
+              View All Cases
             </button>
           </div>
           
