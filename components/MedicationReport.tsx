@@ -4,14 +4,15 @@ import { useState } from 'react';
 import { SelectedMedication } from '@/types';
 import { FileText, Plus, Upload } from 'lucide-react';
 import MedicationSelection from './MedicationSelection';
+import FileUploadWithRename from './FileUploadWithRename';
 
 interface MedicationReportProps {
   currentMedications: SelectedMedication[];
   medicationNote: string;
   condition: string;
   selectedPlan: any;
-  onSavePdfOnly: (followUpNotes: string, newMedications?: SelectedMedication[], motivationLetter?: string) => void;
-  onSaveWithAttachments: (followUpNotes: string, newMedications?: SelectedMedication[], motivationLetter?: string) => void;
+  onSavePdfOnly: (followUpNotes: string, newMedications?: SelectedMedication[], motivationLetter?: string, documentation?: { notes: string; images: string[] }) => void;
+  onSaveWithAttachments: (followUpNotes: string, newMedications?: SelectedMedication[], motivationLetter?: string, documentation?: { notes: string; images: string[] }) => void;
 }
 
 const MedicationReport = ({
@@ -26,6 +27,8 @@ const MedicationReport = ({
   const [addingNew, setAddingNew] = useState(false);
   const [newMedications, setNewMedications] = useState<SelectedMedication[]>([]);
   const [motivationLetter, setMotivationLetter] = useState('');
+  const [documentationNotes, setDocumentationNotes] = useState('');
+  const [documentationImages, setDocumentationImages] = useState<string[]>([]);
   
   const handleAddNewMedication = (medication: SelectedMedication) => {
     setNewMedications([...newMedications, medication]);
@@ -36,18 +39,28 @@ const MedicationReport = ({
   };
   
   const handleSavePdfOnly = () => {
+    const documentation = documentationNotes || documentationImages.length > 0
+      ? { notes: documentationNotes, images: documentationImages }
+      : undefined;
+
     onSavePdfOnly(
       followUpNotes,
       newMedications.length > 0 ? newMedications : undefined,
-      newMedications.length > 0 ? motivationLetter : undefined
+      newMedications.length > 0 ? motivationLetter : undefined,
+      documentation
     );
   };
 
   const handleSaveWithAttachments = () => {
+    const documentation = documentationNotes || documentationImages.length > 0
+      ? { notes: documentationNotes, images: documentationImages }
+      : undefined;
+
     onSaveWithAttachments(
       followUpNotes,
       newMedications.length > 0 ? newMedications : undefined,
-      newMedications.length > 0 ? motivationLetter : undefined
+      newMedications.length > 0 ? motivationLetter : undefined,
+      documentation
     );
   };
   
@@ -93,6 +106,29 @@ const MedicationReport = ({
             value={followUpNotes}
             onChange={(e) => setFollowUpNotes(e.target.value)}
           />
+        </div>
+
+        {/* Documentation Section */}
+        <div className="mb-6">
+          <h3 className="font-semibold text-lg mb-3">Supporting Documentation</h3>
+          <div className="space-y-4">
+            <div>
+              <label className="label">Documentation Notes</label>
+              <textarea
+                className="textarea-field"
+                rows={3}
+                placeholder="Enter any additional notes for documentation (lab results, observations, etc.)..."
+                value={documentationNotes}
+                onChange={(e) => setDocumentationNotes(e.target.value)}
+              />
+            </div>
+
+            <FileUploadWithRename
+              images={documentationImages}
+              onImagesChange={setDocumentationImages}
+              maxFiles={10}
+            />
+          </div>
         </div>
         
         {/* Add New Medication */}

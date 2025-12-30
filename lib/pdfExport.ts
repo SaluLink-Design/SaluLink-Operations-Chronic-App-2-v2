@@ -284,7 +284,8 @@ export class PDFExportService {
     patientCase: PatientCase,
     followUpNotes: string,
     newMedications?: SelectedMedication[],
-    motivationLetter?: string
+    motivationLetter?: string,
+    documentation?: { notes: string; images: string[] }
   ): Promise<void> {
     const zip = new JSZip();
     const fileName = `medication-report-${patientCase.patientId}-${format(new Date(), 'yyyyMMdd')}`;
@@ -320,6 +321,24 @@ export class PDFExportService {
         });
       }
     });
+
+    if (documentation && documentation.images && documentation.images.length > 0) {
+      documentation.images.forEach((fileData) => {
+        try {
+          const parsed = JSON.parse(fileData);
+          const base64Data = parsed.data.split(',')[1];
+          const sanitizedName = parsed.name.replace(/[^a-z0-9.-]/gi, '_');
+          zip.file(`attachment-${fileCounter}-${sanitizedName}`, base64Data, { base64: true });
+          fileCounter++;
+        } catch {
+          const base64Data = fileData.split(',')[1];
+          if (base64Data) {
+            zip.file(`attachment-${fileCounter}.jpg`, base64Data, { base64: true });
+            fileCounter++;
+          }
+        }
+      });
+    }
 
     const zipBlob = await zip.generateAsync({ type: 'blob' });
     const url = URL.createObjectURL(zipBlob);

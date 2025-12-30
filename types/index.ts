@@ -53,6 +53,11 @@ export interface SelectedMedication {
   activeIngredient: string;
   medicineNameAndStrength: string;
   cdaAmount: string;
+  note?: string;
+  documentation?: {
+    notes: string;
+    images: string[];
+  };
 }
 
 export type MedicalPlan = 'Core' | 'Priority' | 'Saver' | 'Executive' | 'Comprehensive';
@@ -93,6 +98,10 @@ export interface MedicationReport {
   followUpNotes: string;
   newMedications: SelectedMedication[];
   motivationLetter: string;
+  documentation?: {
+    notes: string;
+    images: string[];
+  };
   createdAt: Date;
 }
 

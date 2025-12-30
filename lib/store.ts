@@ -39,6 +39,7 @@ interface AppState {
   
   addMedication: (medication: SelectedMedication) => void;
   removeMedication: (index: number) => void;
+  updateMedicationNote: (index: number, note: string) => void;
   setMedicationNote: (note: string) => void;
   setSelectedPlan: (plan: MedicalPlan) => void;
   
@@ -109,11 +110,17 @@ export const useStore = create<AppState>()(
       addMedication: (medication) => set((state) => ({
         medications: [...state.medications, medication],
       })),
-      
+
       removeMedication: (index) => set((state) => ({
         medications: state.medications.filter((_, i) => i !== index),
       })),
-      
+
+      updateMedicationNote: (index, note) => set((state) => ({
+        medications: state.medications.map((m, i) =>
+          i === index ? { ...m, note } : m
+        ),
+      })),
+
       setMedicationNote: (note) => set({ medicationNote: note }),
       
       setSelectedPlan: (plan) => set({ selectedPlan: plan }),

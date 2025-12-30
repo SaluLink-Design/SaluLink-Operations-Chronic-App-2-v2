@@ -240,7 +240,7 @@ export default function Home() {
     setCurrentWorkflow('new');
   };
 
-  const handleMedicationReportSavePdfOnly = (followUpNotes: string, newMeds?: any[], motivationLetter?: string) => {
+  const handleMedicationReportSavePdfOnly = (followUpNotes: string, newMeds?: any[], motivationLetter?: string, documentation?: { notes: string; images: string[] }) => {
     if (store.currentCaseId) {
       const currentCase = store.cases.find(c => c.id === store.currentCaseId);
       if (currentCase) {
@@ -251,6 +251,7 @@ export default function Home() {
           followUpNotes,
           newMedications: newMeds || [],
           motivationLetter: motivationLetter || '',
+          documentation,
           createdAt: new Date(),
         };
 
@@ -267,6 +268,7 @@ export default function Home() {
           followUpNotes,
           newMedications: newMeds || [],
           motivationLetter: motivationLetter || '',
+          documentation,
         });
 
         if (newMeds && newMeds.length > 0) {
@@ -283,7 +285,7 @@ export default function Home() {
     setCurrentWorkflow('new');
   };
 
-  const handleMedicationReportSaveWithAttachments = async (followUpNotes: string, newMeds?: any[], motivationLetter?: string) => {
+  const handleMedicationReportSaveWithAttachments = async (followUpNotes: string, newMeds?: any[], motivationLetter?: string, documentation?: { notes: string; images: string [] }) => {
     if (store.currentCaseId) {
       const currentCase = store.cases.find(c => c.id === store.currentCaseId);
       if (currentCase) {
@@ -294,6 +296,7 @@ export default function Home() {
           followUpNotes,
           newMedications: newMeds || [],
           motivationLetter: motivationLetter || '',
+          documentation,
           createdAt: new Date(),
         };
 
@@ -310,6 +313,7 @@ export default function Home() {
           followUpNotes,
           newMedications: newMeds || [],
           motivationLetter: motivationLetter || '',
+          documentation,
         });
 
         if (newMeds && newMeds.length > 0) {
@@ -319,7 +323,7 @@ export default function Home() {
         }
 
         const pdfService = new PDFExportService();
-        await pdfService.exportMedicationReportWithAttachments(updatedCase, followUpNotes, newMeds, motivationLetter);
+        await pdfService.exportMedicationReportWithAttachments(updatedCase, followUpNotes, newMeds, motivationLetter, documentation);
       }
     }
     alert('Medication report saved and exported with attachments!');
@@ -563,6 +567,7 @@ export default function Home() {
                   onAddMedication={store.addMedication}
                   onRemoveMedication={store.removeMedication}
                   onSetMedicationNote={store.setMedicationNote}
+                  onUpdateMedicationNote={store.updateMedicationNote}
                   onSetPlan={store.setSelectedPlan}
                 />
               )}
