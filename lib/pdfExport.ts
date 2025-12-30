@@ -1,4 +1,5 @@
 import jsPDF from 'jspdf';
+import JSZip from 'jszip';
 import { PatientCase, TreatmentItem, SelectedMedication } from '@/types';
 import { format } from 'date-fns';
 
@@ -42,10 +43,10 @@ export class PDFExportService {
     this.checkPageBreak(8);
     this.doc.setFontSize(11);
     this.doc.setFont('helvetica', 'normal');
-    
+
     const maxWidth = this.doc.internal.pageSize.width - this.margin * 2 - indent;
     const lines = this.doc.splitTextToSize(text, maxWidth);
-    
+
     lines.forEach((line: string) => {
       this.checkPageBreak(8);
       this.doc.text(line, this.margin + indent, this.yPosition);
@@ -58,7 +59,7 @@ export class PDFExportService {
     this.doc.setFontSize(11);
     this.doc.setFont('helvetica', 'bold');
     this.doc.text(label, this.margin + indent, this.yPosition);
-    
+
     this.doc.setFont('helvetica', 'normal');
     const labelWidth = this.doc.getTextWidth(label);
     this.doc.text(value, this.margin + indent + labelWidth + 2, this.yPosition);
@@ -83,14 +84,64 @@ export class PDFExportService {
     }
   }
 
+  async exportInitialClaimWithAttachments(patientCase: PatientCase): Promise<void> {
+    const zip = new JSZip();
+    const fileName = `claim-${patientCase.patientId}-${format(new Date(), 'yyyyMMdd')}`;
+
+    this.doc = new jsPDF();
+    this.yPosition = 20;
+    this.buildInitialClaimPDF(patientCase);
+    const pdfBlob = this.doc.output('blob');
+    zip.file(`${fileName}.pdf`, pdfBlob);
+
+    const allTreatments = [
+      ...patientCase.diagnosticTreatments,
+      ...patientCase.ongoingTreatments
+    ];
+
+    let fileCounter = 1;
+    allTreatments.forEach((treatment) => {
+      if (treatment.documentation.images && treatment.documentation.images.length > 0) {
+        treatment.documentation.images.forEach((fileData) => {
+          try {
+            const parsed = JSON.parse(fileData);
+            const base64Data = parsed.data.split(',')[1];
+            const sanitizedName = parsed.name.replace(/[^a-z0-9.-]/gi, '_');
+            zip.file(`attachment-${fileCounter}-${sanitizedName}`, base64Data, { base64: true });
+            fileCounter++;
+          } catch {
+            const base64Data = fileData.split(',')[1];
+            if (base64Data) {
+              zip.file(`attachment-${fileCounter}.jpg`, base64Data, { base64: true });
+              fileCounter++;
+            }
+          }
+        });
+      }
+    });
+
+    const zipBlob = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(zipBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${fileName}.zip`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
   exportInitialClaim(patientCase: PatientCase): void {
-    // Header
+    this.doc = new jsPDF();
+    this.yPosition = 20;
+    this.buildInitialClaimPDF(patientCase);
+    this.doc.save(`claim-${patientCase.patientId}-${format(new Date(), 'yyyyMMdd')}.pdf`);
+  }
+
+  private buildInitialClaimPDF(patientCase: PatientCase): void {
     this.addTitle('SaluLink Chronic Treatment Claim');
     this.addText(`Generated: ${format(new Date(), 'MMMM dd, yyyy HH:mm')}`);
     this.yPosition += 5;
     this.addDivider();
 
-    // Patient Information
     this.addSubtitle('Patient Information');
     this.addBoldText('Name: ', patientCase.patientName, 5);
     this.addBoldText('Patient ID: ', patientCase.patientId, 5);
@@ -98,13 +149,11 @@ export class PDFExportService {
     this.yPosition += 5;
     this.addDivider();
 
-    // Clinical Note
     this.addSubtitle('Clinical Note');
     this.addText(patientCase.clinicalNote, 5);
     this.yPosition += 5;
     this.addDivider();
 
-    // Condition & ICD Code
     this.addSubtitle('Diagnosis');
     this.addBoldText('Condition: ', patientCase.condition, 5);
     this.addBoldText('ICD-10 Code: ', patientCase.icdCode, 5);
@@ -112,7 +161,6 @@ export class PDFExportService {
     this.yPosition += 5;
     this.addDivider();
 
-    // Diagnostic Treatments
     if (patientCase.diagnosticTreatments.length > 0) {
       this.addSubtitle('Diagnostic Basket');
       patientCase.diagnosticTreatments.forEach((treatment, index) => {
@@ -158,7 +206,6 @@ export class PDFExportService {
       this.addDivider();
     }
 
-    // Medications
     if (patientCase.medications.length > 0) {
       this.addSubtitle('Prescribed Medications');
       patientCase.medications.forEach((med, index) => {
@@ -167,7 +214,7 @@ export class PDFExportService {
         this.addBoldText('   CDA Amount: ', med.cdaAmount, 10);
         this.yPosition += 3;
       });
-      
+
       if (patientCase.medicationNote) {
         this.yPosition += 5;
         this.addText('Registration Note:', 5);
@@ -176,25 +223,66 @@ export class PDFExportService {
       this.addDivider();
     }
 
-    // Footer
     this.yPosition = this.pageHeight - 30;
     this.doc.setFontSize(9);
     this.doc.setTextColor(150);
     this.doc.text('Generated by SaluLink Chronic Treatment App', this.margin, this.yPosition);
     this.doc.text(`Case ID: ${patientCase.id}`, this.margin, this.yPosition + 5);
+  }
 
-    // Save
-    this.doc.save(`claim-${patientCase.patientId}-${format(new Date(), 'yyyyMMdd')}.pdf`);
+  async exportOngoingManagementWithAttachments(patientCase: PatientCase): Promise<void> {
+    const zip = new JSZip();
+    const fileName = `ongoing-${patientCase.patientId}-${format(new Date(), 'yyyyMMdd')}`;
+
+    this.doc = new jsPDF();
+    this.yPosition = 20;
+    this.buildOngoingManagementPDF(patientCase);
+    const pdfBlob = this.doc.output('blob');
+    zip.file(`${fileName}.pdf`, pdfBlob);
+
+    let fileCounter = 1;
+    patientCase.ongoingTreatments.forEach((treatment) => {
+      if (treatment.documentation.images && treatment.documentation.images.length > 0) {
+        treatment.documentation.images.forEach((fileData) => {
+          try {
+            const parsed = JSON.parse(fileData);
+            const base64Data = parsed.data.split(',')[1];
+            const sanitizedName = parsed.name.replace(/[^a-z0-9.-]/gi, '_');
+            zip.file(`attachment-${fileCounter}-${sanitizedName}`, base64Data, { base64: true });
+            fileCounter++;
+          } catch {
+            const base64Data = fileData.split(',')[1];
+            if (base64Data) {
+              zip.file(`attachment-${fileCounter}.jpg`, base64Data, { base64: true });
+              fileCounter++;
+            }
+          }
+        });
+      }
+    });
+
+    const zipBlob = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(zipBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${fileName}.zip`;
+    link.click();
+    URL.revokeObjectURL(url);
   }
 
   exportOngoingManagement(patientCase: PatientCase): void {
-    // Header
+    this.doc = new jsPDF();
+    this.yPosition = 20;
+    this.buildOngoingManagementPDF(patientCase);
+    this.doc.save(`ongoing-${patientCase.patientId}-${format(new Date(), 'yyyyMMdd')}.pdf`);
+  }
+
+  private buildOngoingManagementPDF(patientCase: PatientCase): void {
     this.addTitle('Ongoing Management Report');
     this.addText(`Generated: ${format(new Date(), 'MMMM dd, yyyy HH:mm')}`);
     this.yPosition += 5;
     this.addDivider();
 
-    // Patient Information
     this.addSubtitle('Patient Information');
     this.addBoldText('Name: ', patientCase.patientName, 5);
     this.addBoldText('Patient ID: ', patientCase.patientId, 5);
@@ -203,7 +291,6 @@ export class PDFExportService {
     this.yPosition += 5;
     this.addDivider();
 
-    // Ongoing Treatments
     if (patientCase.ongoingTreatments.length > 0) {
       this.addSubtitle('Ongoing Management Basket');
       patientCase.ongoingTreatments.forEach((treatment, index) => {
@@ -247,9 +334,6 @@ export class PDFExportService {
         this.yPosition += 3;
       });
     }
-
-    // Save
-    this.doc.save(`ongoing-${patientCase.patientId}-${format(new Date(), 'yyyyMMdd')}.pdf`);
   }
 
   exportMedicationReport(
@@ -258,13 +342,11 @@ export class PDFExportService {
     newMedications?: SelectedMedication[],
     motivationLetter?: string
   ): void {
-    // Header
     this.addTitle('Medication Report');
     this.addText(`Generated: ${format(new Date(), 'MMMM dd, yyyy HH:mm')}`);
     this.yPosition += 5;
     this.addDivider();
 
-    // Patient Information
     this.addSubtitle('Patient Information');
     this.addBoldText('Name: ', patientCase.patientName, 5);
     this.addBoldText('Patient ID: ', patientCase.patientId, 5);
@@ -272,7 +354,6 @@ export class PDFExportService {
     this.yPosition += 5;
     this.addDivider();
 
-    // Original Medications
     this.addSubtitle('Current Medications');
     patientCase.medications.forEach((med, index) => {
       this.addText(`${index + 1}. ${med.medicineNameAndStrength}`, 5);
@@ -282,13 +363,11 @@ export class PDFExportService {
     });
     this.addDivider();
 
-    // Follow-up Notes
     this.addSubtitle('Follow-up Notes');
     this.addText(followUpNotes, 5);
     this.yPosition += 5;
     this.addDivider();
 
-    // New Medications
     if (newMedications && newMedications.length > 0) {
       this.addSubtitle('New Prescribed Medications');
       newMedications.forEach((med, index) => {
@@ -305,7 +384,6 @@ export class PDFExportService {
       }
     }
 
-    // Save
     this.doc.save(`medication-report-${patientCase.patientId}-${format(new Date(), 'yyyyMMdd')}.pdf`);
   }
 
@@ -315,14 +393,12 @@ export class PDFExportService {
     referralNote: string,
     specialistType: string
   ): void {
-    // Header
     this.addTitle('Specialist Referral');
     this.addText(`Generated: ${format(new Date(), 'MMMM dd, yyyy HH:mm')}`);
     this.yPosition += 5;
-    
-    // Urgency Badge
-    this.doc.setFillColor(urgency === 'high' ? 220 : urgency === 'medium' ? 255 : 200, 
-                          urgency === 'high' ? 50 : urgency === 'medium' ? 200 : 255, 
+
+    this.doc.setFillColor(urgency === 'high' ? 220 : urgency === 'medium' ? 255 : 200,
+                          urgency === 'high' ? 50 : urgency === 'medium' ? 200 : 255,
                           urgency === 'high' ? 50 : urgency === 'medium' ? 100 : 200);
     this.doc.rect(this.margin, this.yPosition, 40, 8, 'F');
     this.doc.setTextColor(0, 0, 0);
@@ -331,7 +407,6 @@ export class PDFExportService {
     this.yPosition += 15;
     this.addDivider();
 
-    // Patient Information
     this.addSubtitle('Patient Information');
     this.addBoldText('Name: ', patientCase.patientName, 5);
     this.addBoldText('Patient ID: ', patientCase.patientId, 5);
@@ -339,7 +414,6 @@ export class PDFExportService {
     this.yPosition += 5;
     this.addDivider();
 
-    // Diagnosis
     this.addSubtitle('Diagnosis');
     this.addBoldText('Condition: ', patientCase.condition, 5);
     this.addBoldText('ICD-10 Code: ', patientCase.icdCode, 5);
@@ -347,13 +421,11 @@ export class PDFExportService {
     this.yPosition += 5;
     this.addDivider();
 
-    // Clinical Note
     this.addSubtitle('Original Clinical Note');
     this.addText(patientCase.clinicalNote, 5);
     this.yPosition += 5;
     this.addDivider();
 
-    // Diagnostic Treatments
     if (patientCase.diagnosticTreatments.length > 0) {
       this.addSubtitle('Diagnostic Tests Completed');
       patientCase.diagnosticTreatments.forEach((treatment, index) => {
@@ -367,7 +439,6 @@ export class PDFExportService {
       this.addDivider();
     }
 
-    // Ongoing Management
     if (patientCase.ongoingTreatments.length > 0) {
       this.addSubtitle('Ongoing Management');
       patientCase.ongoingTreatments.forEach((treatment, index) => {
@@ -381,7 +452,6 @@ export class PDFExportService {
       this.addDivider();
     }
 
-    // Current Medications
     if (patientCase.medications.length > 0) {
       this.addSubtitle('Current Medications');
       patientCase.medications.forEach((med, index) => {
@@ -399,7 +469,6 @@ export class PDFExportService {
       this.addDivider();
     }
 
-    // Medication Reports History
     if (patientCase.medicationReports && patientCase.medicationReports.length > 0) {
       this.addSubtitle('Medication Updates History');
       patientCase.medicationReports.forEach((report, index) => {
@@ -421,12 +490,9 @@ export class PDFExportService {
       this.addDivider();
     }
 
-    // Referral Motivation
     this.addSubtitle('Referral Motivation');
     this.addText(referralNote, 5);
 
-    // Save
     this.doc.save(`referral-${patientCase.patientId}-${format(new Date(), 'yyyyMMdd')}.pdf`);
   }
 }
-

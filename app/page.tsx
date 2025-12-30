@@ -135,7 +135,35 @@ export default function Home() {
     pdfService.exportInitialClaim(patientCase);
   };
 
-  const handleSaveCase = () => {
+  const handleExportWithAttachments = async () => {
+    if (!store.selectedCondition || !store.selectedIcdCode) {
+      alert('Please complete the workflow first');
+      return;
+    }
+
+    const pdfService = new PDFExportService();
+    const patientCase = {
+      id: Date.now().toString(),
+      patientName: patientName || 'Patient',
+      patientId: patientId || 'N/A',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      clinicalNote: store.clinicalNote,
+      condition: store.selectedCondition,
+      icdCode: store.selectedIcdCode,
+      icdDescription: store.selectedIcdDescription || '',
+      diagnosticTreatments: store.diagnosticTreatments,
+      ongoingTreatments: store.ongoingTreatments,
+      medications: store.medications,
+      medicationNote: store.medicationNote,
+      plan: store.selectedPlan,
+      status: 'diagnostic' as const,
+    };
+
+    await pdfService.exportInitialClaimWithAttachments(patientCase);
+  };
+
+  const handleSaveCase = async (includeAttachments: boolean = false) => {
     if (!patientName || !patientId) {
       alert('Please enter patient name and ID');
       return;
@@ -144,7 +172,11 @@ export default function Home() {
     setShowSaveModal(false);
     setShowCaseActions(false);
 
-    handleExportPDF();
+    if (includeAttachments) {
+      await handleExportWithAttachments();
+    } else {
+      handleExportPDF();
+    }
     alert('Case saved and exported successfully!');
   };
 
@@ -587,15 +619,24 @@ export default function Home() {
                 />
               </div>
             </div>
-            <div className="flex gap-3 mt-6">
+            <div className="space-y-3 mt-6">
+              <button
+                onClick={() => handleSaveCase(false)}
+                className="btn-primary w-full"
+              >
+                Save & Export PDF
+              </button>
+              <button
+                onClick={() => handleSaveCase(true)}
+                className="btn-secondary w-full border-2 border-primary-500 text-primary-600 hover:bg-primary-50"
+              >
+                Save & Export with Attachments (ZIP)
+              </button>
               <button
                 onClick={() => setShowSaveModal(false)}
-                className="btn-secondary flex-1"
+                className="btn-secondary w-full"
               >
                 Cancel
-              </button>
-              <button onClick={handleSaveCase} className="btn-primary flex-1">
-                Save & Export
               </button>
             </div>
           </div>
