@@ -280,31 +280,19 @@ const OngoingManagement = ({
                     </div>
 
                     {treatment.documentation.images.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
+                      <div className="space-y-2">
                         {treatment.documentation.images.map((fileData, fileIndex) => {
                           try {
                             const parsed = JSON.parse(fileData);
-                            const isImage = parsed.type.startsWith('image/');
-
                             return (
                               <div
                                 key={fileIndex}
-                                className="relative group"
+                                className="flex items-center justify-between p-2 bg-gray-50 rounded border border-gray-200"
                               >
-                                {isImage ? (
-                                  <img
-                                    src={parsed.data}
-                                    alt={parsed.name}
-                                    className="w-20 h-20 object-cover rounded border-2 border-gray-200"
-                                  />
-                                ) : (
-                                  <div className="w-20 h-20 flex flex-col items-center justify-center bg-gray-100 rounded border-2 border-gray-200 p-2">
-                                    <FileText className="w-8 h-8 text-gray-600 mb-1" />
-                                    <span className="text-xs text-gray-600 text-center truncate w-full">
-                                      {parsed.name.split('.').pop()?.toUpperCase()}
-                                    </span>
-                                  </div>
-                                )}
+                                <div className="flex items-center gap-2">
+                                  <FileText className="w-4 h-4 text-gray-600" />
+                                  <span className="text-sm text-gray-700">{parsed.name}</span>
+                                </div>
                                 <button
                                   onClick={() => {
                                     const newImages = treatment.documentation.images.filter((_, i) => i !== fileIndex);
@@ -315,9 +303,9 @@ const OngoingManagement = ({
                                       }
                                     });
                                   }}
-                                  className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  className="text-red-600 hover:text-red-700 p-1"
                                 >
-                                  <X className="w-3 h-3" />
+                                  <X className="w-4 h-4" />
                                 </button>
                               </div>
                             );
