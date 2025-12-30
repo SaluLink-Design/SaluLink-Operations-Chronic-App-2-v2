@@ -169,7 +169,7 @@ const DiagnosticBasket = ({
                     <input
                       type="file"
                       id={`file-upload-${index}`}
-                      accept="image/*"
+                      accept="image/*,.pdf,.doc,.docx"
                       multiple
                       className="hidden"
                       onChange={async (e) => {
@@ -178,15 +178,23 @@ const DiagnosticBasket = ({
                           const filePromises = Array.from(files).map(file => {
                             return new Promise<string>((resolve) => {
                               const reader = new FileReader();
-                              reader.onloadend = () => resolve(reader.result as string);
+                              reader.onloadend = () => {
+                                const result = reader.result as string;
+                                const fileData = JSON.stringify({
+                                  name: file.name,
+                                  type: file.type,
+                                  data: result
+                                });
+                                resolve(fileData);
+                              };
                               reader.readAsDataURL(file);
                             });
                           });
-                          const dataUrls = await Promise.all(filePromises);
+                          const fileDataList = await Promise.all(filePromises);
                           onUpdateTreatment(index, {
                             documentation: {
                               ...treatment.documentation,
-                              images: [...treatment.documentation.images, ...dataUrls]
+                              images: [...treatment.documentation.images, ...fileDataList]
                             }
                           });
                         }
@@ -208,32 +216,50 @@ const DiagnosticBasket = ({
 
                   {treatment.documentation.images.length > 0 && (
                     <div className="flex flex-wrap gap-2">
-                      {treatment.documentation.images.map((dataUrl, fileIndex) => (
-                        <div
-                          key={fileIndex}
-                          className="relative group"
-                        >
-                          <img
-                            src={dataUrl}
-                            alt={`Upload ${fileIndex + 1}`}
-                            className="w-20 h-20 object-cover rounded border-2 border-gray-200"
-                          />
-                          <button
-                            onClick={() => {
-                              const newImages = treatment.documentation.images.filter((_, i) => i !== fileIndex);
-                              onUpdateTreatment(index, {
-                                documentation: {
-                                  ...treatment.documentation,
-                                  images: newImages
-                                }
-                              });
-                            }}
-                            className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </div>
-                      ))}
+                      {treatment.documentation.images.map((fileData, fileIndex) => {
+                        try {
+                          const parsed = JSON.parse(fileData);
+                          const isImage = parsed.type.startsWith('image/');
+
+                          return (
+                            <div
+                              key={fileIndex}
+                              className="relative group"
+                            >
+                              {isImage ? (
+                                <img
+                                  src={parsed.data}
+                                  alt={parsed.name}
+                                  className="w-20 h-20 object-cover rounded border-2 border-gray-200"
+                                />
+                              ) : (
+                                <div className="w-20 h-20 flex flex-col items-center justify-center bg-gray-100 rounded border-2 border-gray-200 p-2">
+                                  <FileText className="w-8 h-8 text-gray-600 mb-1" />
+                                  <span className="text-xs text-gray-600 text-center truncate w-full">
+                                    {parsed.name.split('.').pop()?.toUpperCase()}
+                                  </span>
+                                </div>
+                              )}
+                              <button
+                                onClick={() => {
+                                  const newImages = treatment.documentation.images.filter((_, i) => i !== fileIndex);
+                                  onUpdateTreatment(index, {
+                                    documentation: {
+                                      ...treatment.documentation,
+                                      images: newImages
+                                    }
+                                  });
+                                }}
+                                className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                          );
+                        } catch {
+                          return null;
+                        }
+                      })}
                     </div>
                   )}
                 </div>
