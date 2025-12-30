@@ -169,17 +169,24 @@ const DiagnosticBasket = ({
                     <input
                       type="file"
                       id={`file-upload-${index}`}
-                      accept="image/*,.pdf,.doc,.docx"
+                      accept="image/*"
                       multiple
                       className="hidden"
-                      onChange={(e) => {
+                      onChange={async (e) => {
                         const files = e.target.files;
                         if (files) {
-                          const fileNames = Array.from(files).map(f => f.name);
+                          const filePromises = Array.from(files).map(file => {
+                            return new Promise<string>((resolve) => {
+                              const reader = new FileReader();
+                              reader.onloadend = () => resolve(reader.result as string);
+                              reader.readAsDataURL(file);
+                            });
+                          });
+                          const dataUrls = await Promise.all(filePromises);
                           onUpdateTreatment(index, {
                             documentation: {
                               ...treatment.documentation,
-                              images: [...treatment.documentation.images, ...fileNames]
+                              images: [...treatment.documentation.images, ...dataUrls]
                             }
                           });
                         }
@@ -201,12 +208,16 @@ const DiagnosticBasket = ({
 
                   {treatment.documentation.images.length > 0 && (
                     <div className="flex flex-wrap gap-2">
-                      {treatment.documentation.images.map((fileName, fileIndex) => (
+                      {treatment.documentation.images.map((dataUrl, fileIndex) => (
                         <div
                           key={fileIndex}
-                          className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded text-xs"
+                          className="relative group"
                         >
-                          <span className="max-w-[150px] truncate">{fileName}</span>
+                          <img
+                            src={dataUrl}
+                            alt={`Upload ${fileIndex + 1}`}
+                            className="w-20 h-20 object-cover rounded border-2 border-gray-200"
+                          />
                           <button
                             onClick={() => {
                               const newImages = treatment.documentation.images.filter((_, i) => i !== fileIndex);
@@ -217,7 +228,7 @@ const DiagnosticBasket = ({
                                 }
                               });
                             }}
-                            className="text-red-600 hover:text-red-700"
+                            className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                           >
                             <X className="w-3 h-3" />
                           </button>
