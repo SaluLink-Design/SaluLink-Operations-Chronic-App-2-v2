@@ -192,7 +192,7 @@ export default function Home() {
     }
   };
 
-  const handleOngoingManagementSave = () => {
+  const handleOngoingManagementSavePdfOnly = () => {
     if (store.currentCaseId) {
       const currentCase = store.cases.find(c => c.id === store.currentCaseId);
       if (currentCase) {
@@ -212,7 +212,31 @@ export default function Home() {
         pdfService.exportOngoingManagement(updatedCase);
       }
     }
-    alert('Ongoing management saved and exported!');
+    alert('Ongoing management saved and PDF exported!');
+    setCurrentWorkflow('new');
+  };
+
+  const handleOngoingManagementSaveWithAttachments = async () => {
+    if (store.currentCaseId) {
+      const currentCase = store.cases.find(c => c.id === store.currentCaseId);
+      if (currentCase) {
+        const updatedCase = {
+          ...currentCase,
+          ongoingTreatments: store.ongoingTreatments,
+          status: 'ongoing' as const,
+          updatedAt: new Date(),
+        };
+
+        store.updateCase(store.currentCaseId, {
+          ongoingTreatments: store.ongoingTreatments,
+          status: 'ongoing',
+        });
+
+        const pdfService = new PDFExportService();
+        await pdfService.exportOngoingManagementWithAttachments(updatedCase);
+      }
+    }
+    alert('Ongoing management saved and exported with attachments!');
     setCurrentWorkflow('new');
   };
 
@@ -546,7 +570,8 @@ export default function Home() {
                 const newTreatments = store.ongoingTreatments.filter((_, i) => i !== index);
                 useStore.setState({ ongoingTreatments: newTreatments });
               }}
-              onSave={handleOngoingManagementSave}
+              onSavePdfOnly={handleOngoingManagementSavePdfOnly}
+              onSaveWithAttachments={handleOngoingManagementSaveWithAttachments}
             />
           </>
         )}

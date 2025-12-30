@@ -11,7 +11,8 @@ interface OngoingManagementProps {
   onAddTreatment: (treatment: TreatmentItem) => void;
   onUpdateTreatment: (index: number, treatment: Partial<TreatmentItem>) => void;
   onRemoveTreatment: (index: number) => void;
-  onSave: () => void;
+  onSavePdfOnly: () => void;
+  onSaveWithAttachments: () => void;
 }
 
 const OngoingManagement = ({
@@ -20,7 +21,8 @@ const OngoingManagement = ({
   onAddTreatment,
   onUpdateTreatment,
   onRemoveTreatment,
-  onSave
+  onSavePdfOnly,
+  onSaveWithAttachments
 }: OngoingManagementProps) => {
   const [basketItems, setBasketItems] = useState<TreatmentBasketItem[]>([]);
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
@@ -322,10 +324,15 @@ const OngoingManagement = ({
           )}
         </div>
         
-        {/* Save Button */}
-        <div className="mt-6 flex justify-end">
-          <button onClick={onSave} className="btn-primary">
-            Save & Update Case
+        {/* Save Buttons */}
+        <div className="mt-6 flex gap-3 justify-end">
+          <button onClick={onSavePdfOnly} className="btn-secondary flex items-center gap-2">
+            <FileText className="w-4 h-4" />
+            Save & Export PDF Only
+          </button>
+          <button onClick={onSaveWithAttachments} className="btn-primary flex items-center gap-2">
+            <Upload className="w-4 h-4" />
+            Save & Export with Attachments (ZIP)
           </button>
         </div>
       </div>
