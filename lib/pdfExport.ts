@@ -296,32 +296,7 @@ export class PDFExportService {
     const pdfBlob = this.doc.output('blob');
     zip.file(`${fileName}.pdf`, pdfBlob);
 
-    const allTreatments = [
-      ...patientCase.diagnosticTreatments,
-      ...patientCase.ongoingTreatments
-    ];
-
     let fileCounter = 1;
-    allTreatments.forEach((treatment) => {
-      if (treatment.documentation.images && treatment.documentation.images.length > 0) {
-        treatment.documentation.images.forEach((fileData) => {
-          try {
-            const parsed = JSON.parse(fileData);
-            const base64Data = parsed.data.split(',')[1];
-            const sanitizedName = parsed.name.replace(/[^a-z0-9.-]/gi, '_');
-            zip.file(`attachment-${fileCounter}-${sanitizedName}`, base64Data, { base64: true });
-            fileCounter++;
-          } catch {
-            const base64Data = fileData.split(',')[1];
-            if (base64Data) {
-              zip.file(`attachment-${fileCounter}.jpg`, base64Data, { base64: true });
-              fileCounter++;
-            }
-          }
-        });
-      }
-    });
-
     if (documentation && documentation.images && documentation.images.length > 0) {
       documentation.images.forEach((fileData) => {
         try {
