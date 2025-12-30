@@ -171,35 +171,7 @@ export class PDFExportService {
           this.addText(`  Notes: ${treatment.documentation.notes}`, 10);
         }
         if (treatment.documentation.images && treatment.documentation.images.length > 0) {
-          const images: string[] = [];
-          const documents: string[] = [];
-
-          treatment.documentation.images.forEach((fileData) => {
-            try {
-              const parsed = JSON.parse(fileData);
-              if (parsed.type.startsWith('image/')) {
-                images.push(parsed.data);
-              } else {
-                documents.push(parsed.name);
-              }
-            } catch {
-              images.push(fileData);
-            }
-          });
-
-          if (images.length > 0) {
-            this.addText(`  Attached Images: ${images.length}`, 10);
-            images.forEach((img) => {
-              this.addImage(img, 60, 60);
-            });
-          }
-
-          if (documents.length > 0) {
-            this.addText(`  Attached Documents:`, 10);
-            documents.forEach((docName) => {
-              this.addText(`    • ${docName}`, 15);
-            });
-          }
+          this.addText(`  Attachments: ${treatment.documentation.images.length} file(s)`, 10);
         }
         this.yPosition += 3;
       });
@@ -301,35 +273,7 @@ export class PDFExportService {
           this.addText(`  Notes: ${treatment.documentation.notes}`, 10);
         }
         if (treatment.documentation.images && treatment.documentation.images.length > 0) {
-          const images: string[] = [];
-          const documents: string[] = [];
-
-          treatment.documentation.images.forEach((fileData) => {
-            try {
-              const parsed = JSON.parse(fileData);
-              if (parsed.type.startsWith('image/')) {
-                images.push(parsed.data);
-              } else {
-                documents.push(parsed.name);
-              }
-            } catch {
-              images.push(fileData);
-            }
-          });
-
-          if (images.length > 0) {
-            this.addText(`  Attached Images: ${images.length}`, 10);
-            images.forEach((img) => {
-              this.addImage(img, 60, 60);
-            });
-          }
-
-          if (documents.length > 0) {
-            this.addText(`  Attached Documents:`, 10);
-            documents.forEach((docName) => {
-              this.addText(`    • ${docName}`, 15);
-            });
-          }
+          this.addText(`  Attachments: ${treatment.documentation.images.length} file(s)`, 10);
         }
         this.yPosition += 3;
       });
