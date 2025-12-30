@@ -240,7 +240,7 @@ export default function Home() {
     setCurrentWorkflow('new');
   };
 
-  const handleMedicationReportSave = (followUpNotes: string, newMeds?: any[], motivationLetter?: string) => {
+  const handleMedicationReportSavePdfOnly = (followUpNotes: string, newMeds?: any[], motivationLetter?: string) => {
     if (store.currentCaseId) {
       const currentCase = store.cases.find(c => c.id === store.currentCaseId);
       if (currentCase) {
@@ -279,11 +279,54 @@ export default function Home() {
         pdfService.exportMedicationReport(updatedCase, followUpNotes, newMeds, motivationLetter);
       }
     }
-    alert('Medication report saved and exported!');
+    alert('Medication report saved and PDF exported!');
     setCurrentWorkflow('new');
   };
 
-  const handleReferralSave = (urgency: 'routine' | 'urgent' | 'emergency', referralNote: string, specialistType: string) => {
+  const handleMedicationReportSaveWithAttachments = async (followUpNotes: string, newMeds?: any[], motivationLetter?: string) => {
+    if (store.currentCaseId) {
+      const currentCase = store.cases.find(c => c.id === store.currentCaseId);
+      if (currentCase) {
+        const newMedicationReport = {
+          id: Date.now().toString(),
+          caseId: store.currentCaseId,
+          originalMedications: currentCase.medications,
+          followUpNotes,
+          newMedications: newMeds || [],
+          motivationLetter: motivationLetter || '',
+          createdAt: new Date(),
+        };
+
+        const updatedCase = {
+          ...currentCase,
+          medicationReports: [...(currentCase.medicationReports || []), newMedicationReport],
+          medications: newMeds && newMeds.length > 0 ? [...currentCase.medications, ...newMeds] : currentCase.medications,
+          updatedAt: new Date(),
+        };
+
+        store.addMedicationReport(store.currentCaseId, {
+          caseId: store.currentCaseId,
+          originalMedications: currentCase.medications,
+          followUpNotes,
+          newMedications: newMeds || [],
+          motivationLetter: motivationLetter || '',
+        });
+
+        if (newMeds && newMeds.length > 0) {
+          store.updateCase(store.currentCaseId, {
+            medications: [...currentCase.medications, ...newMeds],
+          });
+        }
+
+        const pdfService = new PDFExportService();
+        await pdfService.exportMedicationReportWithAttachments(updatedCase, followUpNotes, newMeds, motivationLetter);
+      }
+    }
+    alert('Medication report saved and exported with attachments!');
+    setCurrentWorkflow('new');
+  };
+
+  const handleReferralSavePdfOnly = (urgency: 'routine' | 'urgent' | 'emergency', referralNote: string, specialistType: string) => {
     if (store.currentCaseId) {
       const currentCase = store.cases.find(c => c.id === store.currentCaseId);
       if (currentCase) {
@@ -313,7 +356,41 @@ export default function Home() {
         pdfService.exportReferral(updatedCase, urgency, referralNote, specialistType);
       }
     }
-    alert('Referral saved and exported!');
+    alert('Referral saved and PDF exported!');
+    setCurrentWorkflow('new');
+  };
+
+  const handleReferralSaveWithAttachments = async (urgency: 'routine' | 'urgent' | 'emergency', referralNote: string, specialistType: string) => {
+    if (store.currentCaseId) {
+      const currentCase = store.cases.find(c => c.id === store.currentCaseId);
+      if (currentCase) {
+        const newReferral = {
+          id: Date.now().toString(),
+          caseId: store.currentCaseId,
+          urgency,
+          referralNote,
+          specialistType,
+          createdAt: new Date(),
+        };
+
+        const updatedCase = {
+          ...currentCase,
+          referrals: [...(currentCase.referrals || []), newReferral],
+          updatedAt: new Date(),
+        };
+
+        store.addReferral(store.currentCaseId, {
+          caseId: store.currentCaseId,
+          urgency,
+          referralNote,
+          specialistType,
+        });
+
+        const pdfService = new PDFExportService();
+        await pdfService.exportReferralWithAttachments(updatedCase, urgency, referralNote, specialistType);
+      }
+    }
+    alert('Referral saved and exported with attachments!');
     setCurrentWorkflow('new');
   };
 
@@ -590,7 +667,8 @@ export default function Home() {
               medicationNote={store.medicationNote}
               condition={store.selectedCondition!}
               selectedPlan={store.selectedPlan}
-              onSave={handleMedicationReportSave}
+              onSavePdfOnly={handleMedicationReportSavePdfOnly}
+              onSaveWithAttachments={handleMedicationReportSaveWithAttachments}
             />
           </>
         )}
@@ -607,7 +685,11 @@ export default function Home() {
             {(() => {
               const currentCase = store.cases.find(c => c.id === store.currentCaseId);
               return currentCase ? (
-                <Referral patientCase={currentCase} onSave={handleReferralSave} />
+                <Referral
+                  patientCase={currentCase}
+                  onSavePdfOnly={handleReferralSavePdfOnly}
+                  onSaveWithAttachments={handleReferralSaveWithAttachments}
+                />
               ) : null;
             })()}
           </>

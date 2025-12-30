@@ -280,7 +280,69 @@ export class PDFExportService {
     }
   }
 
+  async exportMedicationReportWithAttachments(
+    patientCase: PatientCase,
+    followUpNotes: string,
+    newMedications?: SelectedMedication[],
+    motivationLetter?: string
+  ): Promise<void> {
+    const zip = new JSZip();
+    const fileName = `medication-report-${patientCase.patientId}-${format(new Date(), 'yyyyMMdd')}`;
+
+    this.doc = new jsPDF();
+    this.yPosition = 20;
+    this.buildMedicationReportPDF(patientCase, followUpNotes, newMedications, motivationLetter);
+    const pdfBlob = this.doc.output('blob');
+    zip.file(`${fileName}.pdf`, pdfBlob);
+
+    const allTreatments = [
+      ...patientCase.diagnosticTreatments,
+      ...patientCase.ongoingTreatments
+    ];
+
+    let fileCounter = 1;
+    allTreatments.forEach((treatment) => {
+      if (treatment.documentation.images && treatment.documentation.images.length > 0) {
+        treatment.documentation.images.forEach((fileData) => {
+          try {
+            const parsed = JSON.parse(fileData);
+            const base64Data = parsed.data.split(',')[1];
+            const sanitizedName = parsed.name.replace(/[^a-z0-9.-]/gi, '_');
+            zip.file(`attachment-${fileCounter}-${sanitizedName}`, base64Data, { base64: true });
+            fileCounter++;
+          } catch {
+            const base64Data = fileData.split(',')[1];
+            if (base64Data) {
+              zip.file(`attachment-${fileCounter}.jpg`, base64Data, { base64: true });
+              fileCounter++;
+            }
+          }
+        });
+      }
+    });
+
+    const zipBlob = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(zipBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${fileName}.zip`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
   exportMedicationReport(
+    patientCase: PatientCase,
+    followUpNotes: string,
+    newMedications?: SelectedMedication[],
+    motivationLetter?: string
+  ): void {
+    this.doc = new jsPDF();
+    this.yPosition = 20;
+    this.buildMedicationReportPDF(patientCase, followUpNotes, newMedications, motivationLetter);
+    this.doc.save(`medication-report-${patientCase.patientId}-${format(new Date(), 'yyyyMMdd')}.pdf`);
+  }
+
+  private buildMedicationReportPDF(
     patientCase: PatientCase,
     followUpNotes: string,
     newMedications?: SelectedMedication[],
@@ -327,11 +389,71 @@ export class PDFExportService {
         this.addText(motivationLetter, 5);
       }
     }
+  }
 
-    this.doc.save(`medication-report-${patientCase.patientId}-${format(new Date(), 'yyyyMMdd')}.pdf`);
+  async exportReferralWithAttachments(
+    patientCase: PatientCase,
+    urgency: string,
+    referralNote: string,
+    specialistType: string
+  ): Promise<void> {
+    const zip = new JSZip();
+    const fileName = `referral-${patientCase.patientId}-${format(new Date(), 'yyyyMMdd')}`;
+
+    this.doc = new jsPDF();
+    this.yPosition = 20;
+    this.buildReferralPDF(patientCase, urgency, referralNote, specialistType);
+    const pdfBlob = this.doc.output('blob');
+    zip.file(`${fileName}.pdf`, pdfBlob);
+
+    const allTreatments = [
+      ...patientCase.diagnosticTreatments,
+      ...patientCase.ongoingTreatments
+    ];
+
+    let fileCounter = 1;
+    allTreatments.forEach((treatment) => {
+      if (treatment.documentation.images && treatment.documentation.images.length > 0) {
+        treatment.documentation.images.forEach((fileData) => {
+          try {
+            const parsed = JSON.parse(fileData);
+            const base64Data = parsed.data.split(',')[1];
+            const sanitizedName = parsed.name.replace(/[^a-z0-9.-]/gi, '_');
+            zip.file(`attachment-${fileCounter}-${sanitizedName}`, base64Data, { base64: true });
+            fileCounter++;
+          } catch {
+            const base64Data = fileData.split(',')[1];
+            if (base64Data) {
+              zip.file(`attachment-${fileCounter}.jpg`, base64Data, { base64: true });
+              fileCounter++;
+            }
+          }
+        });
+      }
+    });
+
+    const zipBlob = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(zipBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${fileName}.zip`;
+    link.click();
+    URL.revokeObjectURL(url);
   }
 
   exportReferral(
+    patientCase: PatientCase,
+    urgency: string,
+    referralNote: string,
+    specialistType: string
+  ): void {
+    this.doc = new jsPDF();
+    this.yPosition = 20;
+    this.buildReferralPDF(patientCase, urgency, referralNote, specialistType);
+    this.doc.save(`referral-${patientCase.patientId}-${format(new Date(), 'yyyyMMdd')}.pdf`);
+  }
+
+  private buildReferralPDF(
     patientCase: PatientCase,
     urgency: string,
     referralNote: string,
@@ -378,6 +500,9 @@ export class PDFExportService {
         if (treatment.documentation.notes) {
           this.addText(`  Findings: ${treatment.documentation.notes}`, 10);
         }
+        if (treatment.documentation.images && treatment.documentation.images.length > 0) {
+          this.addText(`  Attachments: ${treatment.documentation.images.length} file(s)`, 10);
+        }
         this.yPosition += 2;
       });
       this.addDivider();
@@ -390,6 +515,9 @@ export class PDFExportService {
         this.addBoldText('  Frequency: ', `${treatment.timesCompleted}x per year`, 10);
         if (treatment.documentation.notes) {
           this.addText(`  Notes: ${treatment.documentation.notes}`, 10);
+        }
+        if (treatment.documentation.images && treatment.documentation.images.length > 0) {
+          this.addText(`  Attachments: ${treatment.documentation.images.length} file(s)`, 10);
         }
         this.yPosition += 2;
       });
@@ -436,7 +564,5 @@ export class PDFExportService {
 
     this.addSubtitle('Referral Motivation');
     this.addText(referralNote, 5);
-
-    this.doc.save(`referral-${patientCase.patientId}-${format(new Date(), 'yyyyMMdd')}.pdf`);
   }
 }

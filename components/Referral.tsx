@@ -1,15 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { UserPlus, AlertCircle } from 'lucide-react';
+import { UserPlus, AlertCircle, FileText, Upload } from 'lucide-react';
 import { PatientCase } from '@/types';
 
 interface ReferralProps {
   patientCase: PatientCase;
-  onSave: (urgency: 'routine' | 'urgent' | 'emergency', referralNote: string, specialistType: string) => void;
+  onSavePdfOnly: (urgency: 'routine' | 'urgent' | 'emergency', referralNote: string, specialistType: string) => void;
+  onSaveWithAttachments: (urgency: 'routine' | 'urgent' | 'emergency', referralNote: string, specialistType: string) => void;
 }
 
-const Referral = ({ patientCase, onSave }: ReferralProps) => {
+const Referral = ({ patientCase, onSavePdfOnly, onSaveWithAttachments }: ReferralProps) => {
   const [urgency, setUrgency] = useState<'routine' | 'urgent' | 'emergency'>('routine');
   const [referralNote, setReferralNote] = useState('');
   const [specialistType, setSpecialistType] = useState('');
@@ -210,14 +211,23 @@ const Referral = ({ patientCase, onSave }: ReferralProps) => {
         </div>
       )}
       
-      {/* Save Button */}
-      <div className="flex justify-end">
+      {/* Save Buttons */}
+      <div className="flex gap-3 justify-end">
         <button
-          onClick={() => onSave(urgency, referralNote, specialistType)}
+          onClick={() => onSavePdfOnly(urgency, referralNote, specialistType)}
           disabled={!referralNote.trim() || !specialistType.trim()}
-          className="btn-primary"
+          className="btn-secondary flex items-center gap-2"
         >
-          Create Referral
+          <FileText className="w-4 h-4" />
+          Export PDF Only
+        </button>
+        <button
+          onClick={() => onSaveWithAttachments(urgency, referralNote, specialistType)}
+          disabled={!referralNote.trim() || !specialistType.trim()}
+          className="btn-primary flex items-center gap-2"
+        >
+          <Upload className="w-4 h-4" />
+          Export with Attachments (ZIP)
         </button>
       </div>
     </div>

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { SelectedMedication } from '@/types';
-import { FileText, Plus } from 'lucide-react';
+import { FileText, Plus, Upload } from 'lucide-react';
 import MedicationSelection from './MedicationSelection';
 
 interface MedicationReportProps {
@@ -10,7 +10,8 @@ interface MedicationReportProps {
   medicationNote: string;
   condition: string;
   selectedPlan: any;
-  onSave: (followUpNotes: string, newMedications?: SelectedMedication[], motivationLetter?: string) => void;
+  onSavePdfOnly: (followUpNotes: string, newMedications?: SelectedMedication[], motivationLetter?: string) => void;
+  onSaveWithAttachments: (followUpNotes: string, newMedications?: SelectedMedication[], motivationLetter?: string) => void;
 }
 
 const MedicationReport = ({
@@ -18,7 +19,8 @@ const MedicationReport = ({
   medicationNote,
   condition,
   selectedPlan,
-  onSave
+  onSavePdfOnly,
+  onSaveWithAttachments
 }: MedicationReportProps) => {
   const [followUpNotes, setFollowUpNotes] = useState('');
   const [addingNew, setAddingNew] = useState(false);
@@ -33,8 +35,16 @@ const MedicationReport = ({
     setNewMedications(newMedications.filter((_, i) => i !== index));
   };
   
-  const handleSave = () => {
-    onSave(
+  const handleSavePdfOnly = () => {
+    onSavePdfOnly(
+      followUpNotes,
+      newMedications.length > 0 ? newMedications : undefined,
+      newMedications.length > 0 ? motivationLetter : undefined
+    );
+  };
+
+  const handleSaveWithAttachments = () => {
+    onSaveWithAttachments(
       followUpNotes,
       newMedications.length > 0 ? newMedications : undefined,
       newMedications.length > 0 ? motivationLetter : undefined
@@ -127,10 +137,15 @@ const MedicationReport = ({
           </div>
         )}
         
-        {/* Save Button */}
-        <div className="mt-6 flex justify-end">
-          <button onClick={handleSave} className="btn-primary">
-            Save Medication Report
+        {/* Save Buttons */}
+        <div className="mt-6 flex gap-3 justify-end">
+          <button onClick={handleSavePdfOnly} className="btn-secondary flex items-center gap-2">
+            <FileText className="w-4 h-4" />
+            Save & Export PDF Only
+          </button>
+          <button onClick={handleSaveWithAttachments} className="btn-primary flex items-center gap-2">
+            <Upload className="w-4 h-4" />
+            Save & Export with Attachments (ZIP)
           </button>
         </div>
       </div>
