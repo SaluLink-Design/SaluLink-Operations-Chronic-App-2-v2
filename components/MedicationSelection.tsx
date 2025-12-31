@@ -15,6 +15,7 @@ interface MedicationSelectionProps {
   onSetMedicationNote: (note: string) => void;
   onUpdateMedicationNote?: (index: number, note: string) => void;
   onSetPlan: (plan: MedicalPlan) => void;
+  excludedMedications?: SelectedMedication[];
 }
 
 const MedicationSelection = ({
@@ -26,7 +27,8 @@ const MedicationSelection = ({
   onRemoveMedication,
   onSetMedicationNote,
   onUpdateMedicationNote,
-  onSetPlan
+  onSetPlan,
+  excludedMedications = []
 }: MedicationSelectionProps) => {
   const [availableMedications, setAvailableMedications] = useState<MedicineItem[]>([]);
   const [medicineClasses, setMedicineClasses] = useState<string[]>([]);
@@ -57,9 +59,13 @@ const MedicationSelection = ({
     const isAlreadySelected = medications.some(
       m => m.medicineNameAndStrength === medicine.medicineNameAndStrength
     );
-    
-    if (isAlreadySelected) return;
-    
+
+    const isExcluded = excludedMedications.some(
+      m => m.medicineNameAndStrength === medicine.medicineNameAndStrength
+    );
+
+    if (isAlreadySelected || isExcluded) return;
+
     onAddMedication({
       medicineClass: medicine.medicineClass,
       activeIngredient: medicine.activeIngredient,
@@ -123,15 +129,18 @@ const MedicationSelection = ({
             const isSelected = medications.some(
               m => m.medicineNameAndStrength === medicine.medicineNameAndStrength
             );
+            const isExcluded = excludedMedications.some(
+              m => m.medicineNameAndStrength === medicine.medicineNameAndStrength
+            );
             const cdaAmount = getCdaForPlan(medicine);
-            
+
             return (
               <button
                 key={index}
                 onClick={() => handleSelectMedication(medicine)}
-                disabled={isSelected}
+                disabled={isSelected || isExcluded}
                 className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
-                  isSelected
+                  isSelected || isExcluded
                     ? 'border-green-500 bg-green-50 cursor-not-allowed'
                     : 'border-gray-200 hover:border-purple-300 bg-white'
                 }`}
@@ -145,6 +154,11 @@ const MedicationSelection = ({
                       {isSelected && (
                         <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded font-medium">
                           Selected
+                        </span>
+                      )}
+                      {isExcluded && (
+                        <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded font-medium">
+                          Already Prescribed
                         </span>
                       )}
                     </div>

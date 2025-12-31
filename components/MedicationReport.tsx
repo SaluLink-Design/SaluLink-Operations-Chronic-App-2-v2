@@ -151,6 +151,7 @@ const MedicationReport = ({
               onRemoveMedication={handleRemoveNewMedication}
               onSetMedicationNote={() => {}}
               onSetPlan={() => {}}
+              excludedMedications={currentMedications}
             />
             
             <div>
