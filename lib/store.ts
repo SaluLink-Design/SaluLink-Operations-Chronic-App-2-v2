@@ -107,9 +107,19 @@ export const useStore = create<AppState>()(
         ),
       })),
       
-      addMedication: (medication) => set((state) => ({
-        medications: [...state.medications, medication],
-      })),
+      addMedication: (medication) => set((state) => {
+        const isDuplicate = state.medications.some(
+          m => m.medicineNameAndStrength === medication.medicineNameAndStrength
+        );
+
+        if (isDuplicate) {
+          return state;
+        }
+
+        return {
+          medications: [...state.medications, medication],
+        };
+      }),
 
       removeMedication: (index) => set((state) => ({
         medications: state.medications.filter((_, i) => i !== index),
@@ -127,6 +137,17 @@ export const useStore = create<AppState>()(
       
       saveCase: (patientName, patientId) => {
         const state = get();
+
+        const uniqueMedications = state.medications.reduce((acc: SelectedMedication[], current) => {
+          const duplicate = acc.find(item =>
+            item.medicineNameAndStrength === current.medicineNameAndStrength
+          );
+          if (!duplicate) {
+            acc.push(current);
+          }
+          return acc;
+        }, []);
+
         const newCase: PatientCase = {
           id: Date.now().toString(),
           patientName,
@@ -139,12 +160,12 @@ export const useStore = create<AppState>()(
           icdDescription: state.selectedIcdDescription || '',
           diagnosticTreatments: state.diagnosticTreatments,
           ongoingTreatments: state.ongoingTreatments,
-          medications: state.medications,
+          medications: uniqueMedications,
           medicationNote: state.medicationNote,
           plan: state.selectedPlan,
           status: state.ongoingTreatments.length > 0 ? 'ongoing' : 'diagnostic',
         };
-        
+
         set((state) => ({
           cases: [...state.cases, newCase],
           currentCaseId: newCase.id,
@@ -154,8 +175,18 @@ export const useStore = create<AppState>()(
       loadCase: (caseId) => {
         const state = get();
         const selectedCase = state.cases.find(c => c.id === caseId);
-        
+
         if (selectedCase) {
+          const uniqueMedications = selectedCase.medications.reduce((acc: SelectedMedication[], current) => {
+            const duplicate = acc.find(item =>
+              item.medicineNameAndStrength === current.medicineNameAndStrength
+            );
+            if (!duplicate) {
+              acc.push(current);
+            }
+            return acc;
+          }, []);
+
           set({
             currentCaseId: caseId,
             clinicalNote: selectedCase.clinicalNote,
@@ -164,7 +195,7 @@ export const useStore = create<AppState>()(
             selectedIcdDescription: selectedCase.icdDescription,
             diagnosticTreatments: selectedCase.diagnosticTreatments,
             ongoingTreatments: selectedCase.ongoingTreatments,
-            medications: selectedCase.medications,
+            medications: uniqueMedications,
             medicationNote: selectedCase.medicationNote,
             selectedPlan: selectedCase.plan,
           });

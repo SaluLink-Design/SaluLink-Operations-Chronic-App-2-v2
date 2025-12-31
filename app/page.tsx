@@ -23,6 +23,18 @@ import { MatchedCondition } from '@/types';
 
 type WorkflowMode = 'new' | 'ongoing' | 'medication' | 'referral';
 
+const deduplicateMedications = (medications: any[]) => {
+  return medications.reduce((acc: any[], current) => {
+    const duplicate = acc.find(item =>
+      item.medicineNameAndStrength === current.medicineNameAndStrength
+    );
+    if (!duplicate) {
+      acc.push(current);
+    }
+    return acc;
+  }, []);
+};
+
 export default function Home() {
   const store = useStore();
   const [isInitialized, setIsInitialized] = useState(false);
@@ -244,6 +256,10 @@ export default function Home() {
     if (store.currentCaseId) {
       const currentCase = store.cases.find(c => c.id === store.currentCaseId);
       if (currentCase) {
+        const combinedMedications = newMeds && newMeds.length > 0
+          ? deduplicateMedications([...currentCase.medications, ...newMeds])
+          : currentCase.medications;
+
         const newMedicationReport = {
           id: Date.now().toString(),
           caseId: store.currentCaseId,
@@ -258,7 +274,7 @@ export default function Home() {
         const updatedCase = {
           ...currentCase,
           medicationReports: [...(currentCase.medicationReports || []), newMedicationReport],
-          medications: newMeds && newMeds.length > 0 ? [...currentCase.medications, ...newMeds] : currentCase.medications,
+          medications: combinedMedications,
           updatedAt: new Date(),
         };
 
@@ -273,7 +289,7 @@ export default function Home() {
 
         if (newMeds && newMeds.length > 0) {
           store.updateCase(store.currentCaseId, {
-            medications: [...currentCase.medications, ...newMeds],
+            medications: combinedMedications,
           });
         }
 
@@ -289,6 +305,10 @@ export default function Home() {
     if (store.currentCaseId) {
       const currentCase = store.cases.find(c => c.id === store.currentCaseId);
       if (currentCase) {
+        const combinedMedications = newMeds && newMeds.length > 0
+          ? deduplicateMedications([...currentCase.medications, ...newMeds])
+          : currentCase.medications;
+
         const newMedicationReport = {
           id: Date.now().toString(),
           caseId: store.currentCaseId,
@@ -303,7 +323,7 @@ export default function Home() {
         const updatedCase = {
           ...currentCase,
           medicationReports: [...(currentCase.medicationReports || []), newMedicationReport],
-          medications: newMeds && newMeds.length > 0 ? [...currentCase.medications, ...newMeds] : currentCase.medications,
+          medications: combinedMedications,
           updatedAt: new Date(),
         };
 
@@ -318,7 +338,7 @@ export default function Home() {
 
         if (newMeds && newMeds.length > 0) {
           store.updateCase(store.currentCaseId, {
-            medications: [...currentCase.medications, ...newMeds],
+            medications: combinedMedications,
           });
         }
 
