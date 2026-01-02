@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, Upload, Repeat, X, FileText } from 'lucide-react';
+import { Plus, Trash2, Upload, Repeat, X, FileText, Download } from 'lucide-react';
 import { TreatmentBasketItem, TreatmentItem } from '@/types';
 import { DataService } from '@/lib/dataService';
 import FileUploadWithRename from './FileUploadWithRename';
@@ -12,6 +12,7 @@ interface OngoingManagementProps {
   onAddTreatment: (treatment: TreatmentItem) => void;
   onUpdateTreatment: (index: number, treatment: Partial<TreatmentItem>) => void;
   onRemoveTreatment: (index: number) => void;
+  onExportSingleTreatment: (index: number) => void;
   onSaveOnly: () => void;
   onSavePdfOnly: () => void;
   onSaveWithAttachments: () => void;
@@ -23,6 +24,7 @@ const OngoingManagement = ({
   onAddTreatment,
   onUpdateTreatment,
   onRemoveTreatment,
+  onExportSingleTreatment,
   onSaveOnly,
   onSavePdfOnly,
   onSaveWithAttachments
@@ -148,12 +150,21 @@ const OngoingManagement = ({
                       Code: <span className="font-mono">{treatment.code}</span>
                     </p>
                   </div>
-                  <button
-                    onClick={() => onRemoveTreatment(index)}
-                    className="text-red-600 hover:text-red-700 p-2"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => onExportSingleTreatment(index)}
+                      className="text-blue-600 hover:text-blue-700 p-2 hover:bg-blue-50 rounded transition-colors"
+                      title="Export this treatment as ZIP"
+                    >
+                      <Download className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={() => onRemoveTreatment(index)}
+                      className="text-red-600 hover:text-red-700 p-2"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </div>
                 </div>
                 
                 {/* Times Completed */}

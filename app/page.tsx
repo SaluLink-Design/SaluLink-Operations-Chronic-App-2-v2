@@ -215,6 +215,17 @@ export default function Home() {
     setCurrentWorkflow('new');
   };
 
+  const handleExportSingleTreatment = async (treatmentIndex: number) => {
+    if (store.currentCaseId) {
+      const currentCase = store.cases.find(c => c.id === store.currentCaseId);
+      if (currentCase) {
+        const pdfService = new PDFExportService();
+        await pdfService.exportSingleOngoingTreatment(currentCase, treatmentIndex);
+        alert('Treatment exported successfully!');
+      }
+    }
+  };
+
   const handleOngoingManagementSavePdfOnly = () => {
     if (store.currentCaseId) {
       const currentCase = store.cases.find(c => c.id === store.currentCaseId);
@@ -683,6 +694,7 @@ export default function Home() {
                 const newTreatments = store.ongoingTreatments.filter((_, i) => i !== index);
                 useStore.setState({ ongoingTreatments: newTreatments });
               }}
+              onExportSingleTreatment={handleExportSingleTreatment}
               onSaveOnly={handleOngoingManagementSaveOnly}
               onSavePdfOnly={handleOngoingManagementSavePdfOnly}
               onSaveWithAttachments={handleOngoingManagementSaveWithAttachments}

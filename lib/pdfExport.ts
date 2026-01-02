@@ -253,6 +253,51 @@ export class PDFExportService {
     URL.revokeObjectURL(url);
   }
 
+  async exportSingleOngoingTreatment(
+    patientCase: PatientCase,
+    treatmentIndex: number
+  ): Promise<void> {
+    const treatment = patientCase.ongoingTreatments[treatmentIndex];
+    if (!treatment) return;
+
+    const zip = new JSZip();
+    const treatmentName = treatment.description.replace(/[^a-z0-9]/gi, '_');
+    const fileName = `${patientCase.patientName.replace(/\s+/g, '_')}_${patientCase.patientId}_ongoing_management_${treatmentName}`;
+
+    this.doc = new jsPDF();
+    this.yPosition = 20;
+    this.buildSingleTreatmentPDF(patientCase, treatment);
+    const pdfBlob = this.doc.output('blob');
+    zip.file(`${fileName}.pdf`, pdfBlob);
+
+    if (treatment.documentation.images && treatment.documentation.images.length > 0) {
+      let fileCounter = 1;
+      treatment.documentation.images.forEach((fileData) => {
+        try {
+          const parsed = JSON.parse(fileData);
+          const base64Data = parsed.data.split(',')[1];
+          const sanitizedName = parsed.name.replace(/[^a-z0-9.-]/gi, '_');
+          zip.file(`attachment-${fileCounter}-${sanitizedName}`, base64Data, { base64: true });
+          fileCounter++;
+        } catch {
+          const base64Data = fileData.split(',')[1];
+          if (base64Data) {
+            zip.file(`attachment-${fileCounter}.jpg`, base64Data, { base64: true });
+            fileCounter++;
+          }
+        }
+      });
+    }
+
+    const zipBlob = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(zipBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${fileName}.zip`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
   exportOngoingManagement(patientCase: PatientCase): void {
     this.doc = new jsPDF();
     this.yPosition = 20;
@@ -289,6 +334,38 @@ export class PDFExportService {
         }
         this.yPosition += 3;
       });
+    }
+  }
+
+  private buildSingleTreatmentPDF(patientCase: PatientCase, treatment: any): void {
+    this.addTitle('Ongoing Management Treatment');
+    this.addText(`Generated: ${format(new Date(), 'MMMM dd, yyyy HH:mm')}`);
+    this.yPosition += 5;
+    this.addDivider();
+
+    this.addSubtitle('Patient Information');
+    this.addBoldText('Name: ', patientCase.patientName, 5);
+    this.addBoldText('Patient ID: ', patientCase.patientId, 5);
+    this.addBoldText('Condition: ', patientCase.condition, 5);
+    this.addBoldText('ICD-10: ', patientCase.icdCode, 5);
+    this.yPosition += 5;
+    this.addDivider();
+
+    this.addSubtitle('Treatment Details');
+    this.addBoldText('Treatment: ', treatment.description, 5);
+    this.addBoldText('Code: ', treatment.code, 5);
+    this.addBoldText('Times Completed: ', `${treatment.timesCompleted} of ${treatment.maxCovered}`, 5);
+    this.yPosition += 5;
+
+    if (treatment.documentation.notes) {
+      this.addSubtitle('Clinical Notes');
+      this.addText(treatment.documentation.notes, 5);
+      this.yPosition += 5;
+    }
+
+    if (treatment.documentation.images && treatment.documentation.images.length > 0) {
+      this.addSubtitle('Attachments');
+      this.addText(`${treatment.documentation.images.length} file(s) attached`, 5);
     }
   }
 
