@@ -12,6 +12,7 @@ interface OngoingManagementProps {
   onAddTreatment: (treatment: TreatmentItem) => void;
   onUpdateTreatment: (index: number, treatment: Partial<TreatmentItem>) => void;
   onRemoveTreatment: (index: number) => void;
+  onSaveOnly: () => void;
   onSavePdfOnly: () => void;
   onSaveWithAttachments: () => void;
 }
@@ -22,6 +23,7 @@ const OngoingManagement = ({
   onAddTreatment,
   onUpdateTreatment,
   onRemoveTreatment,
+  onSaveOnly,
   onSavePdfOnly,
   onSaveWithAttachments
 }: OngoingManagementProps) => {
@@ -251,6 +253,10 @@ const OngoingManagement = ({
         
         {/* Save Buttons */}
         <div className="mt-6 flex gap-3 justify-end">
+          <button onClick={onSaveOnly} className="btn-secondary flex items-center gap-2">
+            <Repeat className="w-4 h-4" />
+            Save Without Export
+          </button>
           <button onClick={onSavePdfOnly} className="btn-secondary flex items-center gap-2">
             <FileText className="w-4 h-4" />
             Save & Export PDF Only

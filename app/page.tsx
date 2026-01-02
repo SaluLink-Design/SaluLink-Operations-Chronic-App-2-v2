@@ -204,6 +204,17 @@ export default function Home() {
     }
   };
 
+  const handleOngoingManagementSaveOnly = () => {
+    if (store.currentCaseId) {
+      store.updateCase(store.currentCaseId, {
+        ongoingTreatments: store.ongoingTreatments,
+        status: 'ongoing',
+      });
+    }
+    alert('Ongoing management treatments saved successfully!');
+    setCurrentWorkflow('new');
+  };
+
   const handleOngoingManagementSavePdfOnly = () => {
     if (store.currentCaseId) {
       const currentCase = store.cases.find(c => c.id === store.currentCaseId);
@@ -672,6 +683,7 @@ export default function Home() {
                 const newTreatments = store.ongoingTreatments.filter((_, i) => i !== index);
                 useStore.setState({ ongoingTreatments: newTreatments });
               }}
+              onSaveOnly={handleOngoingManagementSaveOnly}
               onSavePdfOnly={handleOngoingManagementSavePdfOnly}
               onSaveWithAttachments={handleOngoingManagementSaveWithAttachments}
             />
