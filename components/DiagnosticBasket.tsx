@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Plus, Trash2, Upload, FileText, X } from 'lucide-react';
 import { TreatmentBasketItem, TreatmentItem } from '@/types';
 import { DataService } from '@/lib/dataService';
+import FileUploadWithRename from './FileUploadWithRename';
 
 interface DiagnosticBasketProps {
   condition: string;
@@ -164,93 +165,17 @@ const DiagnosticBasket = ({
                   }
                 />
 
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="file"
-                      id={`file-upload-${index}`}
-                      accept="image/*,.pdf,.doc,.docx"
-                      multiple
-                      className="hidden"
-                      onChange={async (e) => {
-                        const files = e.target.files;
-                        if (files) {
-                          const filePromises = Array.from(files).map(file => {
-                            return new Promise<string>((resolve) => {
-                              const reader = new FileReader();
-                              reader.onloadend = () => {
-                                const result = reader.result as string;
-                                const fileData = JSON.stringify({
-                                  name: file.name,
-                                  type: file.type,
-                                  data: result
-                                });
-                                resolve(fileData);
-                              };
-                              reader.readAsDataURL(file);
-                            });
-                          });
-                          const fileDataList = await Promise.all(filePromises);
-                          onUpdateTreatment(index, {
-                            documentation: {
-                              ...treatment.documentation,
-                              images: [...treatment.documentation.images, ...fileDataList]
-                            }
-                          });
-                        }
-                      }}
-                    />
-                    <label
-                      htmlFor={`file-upload-${index}`}
-                      className="btn-secondary text-sm flex items-center gap-2 cursor-pointer"
-                    >
-                      <Upload className="w-4 h-4" />
-                      Upload Files
-                    </label>
-                    {treatment.documentation.images.length > 0 && (
-                      <span className="text-sm text-gray-600">
-                        {treatment.documentation.images.length} file(s) uploaded
-                      </span>
-                    )}
-                  </div>
-
-                  {treatment.documentation.images.length > 0 && (
-                    <div className="space-y-2">
-                      {treatment.documentation.images.map((fileData, fileIndex) => {
-                        try {
-                          const parsed = JSON.parse(fileData);
-                          return (
-                            <div
-                              key={fileIndex}
-                              className="flex items-center justify-between p-2 bg-gray-50 rounded border border-gray-200"
-                            >
-                              <div className="flex items-center gap-2">
-                                <FileText className="w-4 h-4 text-gray-600" />
-                                <span className="text-sm text-gray-700">{parsed.name}</span>
-                              </div>
-                              <button
-                                onClick={() => {
-                                  const newImages = treatment.documentation.images.filter((_, i) => i !== fileIndex);
-                                  onUpdateTreatment(index, {
-                                    documentation: {
-                                      ...treatment.documentation,
-                                      images: newImages
-                                    }
-                                  });
-                                }}
-                                className="text-red-600 hover:text-red-700 p-1"
-                              >
-                                <X className="w-4 h-4" />
-                              </button>
-                            </div>
-                          );
-                        } catch {
-                          return null;
-                        }
-                      })}
-                    </div>
-                  )}
-                </div>
+                <FileUploadWithRename
+                  images={treatment.documentation.images}
+                  onImagesChange={(images) =>
+                    onUpdateTreatment(index, {
+                      documentation: {
+                        ...treatment.documentation,
+                        images
+                      }
+                    })
+                  }
+                />
               </div>
             </div>
           ))

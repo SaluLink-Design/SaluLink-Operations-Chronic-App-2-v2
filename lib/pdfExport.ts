@@ -16,6 +16,16 @@ export class PDFExportService {
     this.margin = 20;
   }
 
+  private sanitizeFileName(text: string): string {
+    return text.replace(/[^a-z0-9]/gi, '_');
+  }
+
+  private generateFileName(patientName: string, patientId: string, claimType: string): string {
+    const sanitizedName = this.sanitizeFileName(patientName);
+    const sanitizedId = this.sanitizeFileName(patientId);
+    return `${sanitizedName}_${sanitizedId}_${claimType}`;
+  }
+
   private checkPageBreak(height: number = 10) {
     if (this.yPosition + height > this.pageHeight - this.margin) {
       this.doc.addPage();
@@ -86,7 +96,7 @@ export class PDFExportService {
 
   async exportInitialClaimWithAttachments(patientCase: PatientCase): Promise<void> {
     const zip = new JSZip();
-    const fileName = `claim-${patientCase.patientId}-${format(new Date(), 'yyyyMMdd')}`;
+    const fileName = this.generateFileName(patientCase.patientName, patientCase.patientId, 'Initial_Claim');
 
     this.doc = new jsPDF();
     this.yPosition = 20;
@@ -133,7 +143,8 @@ export class PDFExportService {
     this.doc = new jsPDF();
     this.yPosition = 20;
     this.buildInitialClaimPDF(patientCase);
-    this.doc.save(`claim-${patientCase.patientId}-${format(new Date(), 'yyyyMMdd')}.pdf`);
+    const fileName = this.generateFileName(patientCase.patientName, patientCase.patientId, 'Initial_Claim');
+    this.doc.save(`${fileName}.pdf`);
   }
 
   private buildInitialClaimPDF(patientCase: PatientCase): void {
@@ -204,7 +215,7 @@ export class PDFExportService {
 
   async exportOngoingManagementWithAttachments(patientCase: PatientCase): Promise<void> {
     const zip = new JSZip();
-    const fileName = `ongoing-${patientCase.patientId}-${format(new Date(), 'yyyyMMdd')}`;
+    const fileName = this.generateFileName(patientCase.patientName, patientCase.patientId, 'Ongoing_Management');
 
     this.doc = new jsPDF();
     this.yPosition = 20;
@@ -246,7 +257,8 @@ export class PDFExportService {
     this.doc = new jsPDF();
     this.yPosition = 20;
     this.buildOngoingManagementPDF(patientCase);
-    this.doc.save(`ongoing-${patientCase.patientId}-${format(new Date(), 'yyyyMMdd')}.pdf`);
+    const fileName = this.generateFileName(patientCase.patientName, patientCase.patientId, 'Ongoing_Management');
+    this.doc.save(`${fileName}.pdf`);
   }
 
   private buildOngoingManagementPDF(patientCase: PatientCase): void {
@@ -288,7 +300,7 @@ export class PDFExportService {
     documentation?: { notes: string; images: string[] }
   ): Promise<void> {
     const zip = new JSZip();
-    const fileName = `medication-report-${patientCase.patientId}-${format(new Date(), 'yyyyMMdd')}`;
+    const fileName = this.generateFileName(patientCase.patientName, patientCase.patientId, 'Medication_Report');
 
     this.doc = new jsPDF();
     this.yPosition = 20;
@@ -333,7 +345,8 @@ export class PDFExportService {
     this.doc = new jsPDF();
     this.yPosition = 20;
     this.buildMedicationReportPDF(patientCase, followUpNotes, newMedications, motivationLetter);
-    this.doc.save(`medication-report-${patientCase.patientId}-${format(new Date(), 'yyyyMMdd')}.pdf`);
+    const fileName = this.generateFileName(patientCase.patientName, patientCase.patientId, 'Medication_Report');
+    this.doc.save(`${fileName}.pdf`);
   }
 
   private buildMedicationReportPDF(
@@ -392,7 +405,7 @@ export class PDFExportService {
     specialistType: string
   ): Promise<void> {
     const zip = new JSZip();
-    const fileName = `referral-${patientCase.patientId}-${format(new Date(), 'yyyyMMdd')}`;
+    const fileName = this.generateFileName(patientCase.patientName, patientCase.patientId, 'Referral');
 
     this.doc = new jsPDF();
     this.yPosition = 20;
@@ -444,7 +457,8 @@ export class PDFExportService {
     this.doc = new jsPDF();
     this.yPosition = 20;
     this.buildReferralPDF(patientCase, urgency, referralNote, specialistType);
-    this.doc.save(`referral-${patientCase.patientId}-${format(new Date(), 'yyyyMMdd')}.pdf`);
+    const fileName = this.generateFileName(patientCase.patientName, patientCase.patientId, 'Referral');
+    this.doc.save(`${fileName}.pdf`);
   }
 
   private buildReferralPDF(
