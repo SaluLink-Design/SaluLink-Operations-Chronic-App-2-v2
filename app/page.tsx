@@ -471,6 +471,7 @@ export default function Home() {
       patientName: currentCase.patientName,
       patientId: currentCase.patientId,
       clinicalNote: currentCase.clinicalNote,
+      registrationNote: currentCase.medicationNote || '',
       conditions: [{
         id: '1',
         name: currentCase.condition,

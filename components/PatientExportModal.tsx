@@ -19,6 +19,7 @@ export default function PatientExportModal({ isOpen, onClose, data }: PatientExp
   const [selection, setSelection] = useState<PatientExportSelection>({
     includeClinicalNote: true,
     includePatientInfo: true,
+    includeRegistrationNote: true,
     selectedConditions: data.conditions.map(c => c.id),
     selectedMedications: data.medications.map(m => m.id),
   });
@@ -66,6 +67,7 @@ export default function PatientExportModal({ isOpen, onClose, data }: PatientExp
     if (
       !selection.includeClinicalNote &&
       !selection.includePatientInfo &&
+      !selection.includeRegistrationNote &&
       selection.selectedConditions.length === 0 &&
       selection.selectedMedications.length === 0
     ) {
@@ -151,6 +153,17 @@ export default function PatientExportModal({ isOpen, onClose, data }: PatientExp
                     className="w-4 h-4 text-blue-600 rounded"
                   />
                   <span className="text-sm text-gray-700">Clinical Note</span>
+                </label>
+                <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={selection.includeRegistrationNote}
+                    onChange={(e) =>
+                      setSelection(prev => ({ ...prev, includeRegistrationNote: e.target.checked }))
+                    }
+                    className="w-4 h-4 text-blue-600 rounded"
+                  />
+                  <span className="text-sm text-gray-700">Chronic Registration Note</span>
                 </label>
               </div>
             </div>
@@ -253,7 +266,8 @@ export default function PatientExportModal({ isOpen, onClose, data }: PatientExp
           <div className="text-sm text-gray-600">
             {selection.selectedConditions.length + selection.selectedMedications.length +
               (selection.includeClinicalNote ? 1 : 0) +
-              (selection.includePatientInfo ? 1 : 0)}{' '}
+              (selection.includePatientInfo ? 1 : 0) +
+              (selection.includeRegistrationNote ? 1 : 0)}{' '}
             items selected
           </div>
           <div className="flex gap-3">

@@ -4,6 +4,7 @@ import jsPDF from 'jspdf';
 export interface PatientExportSelection {
   includeClinicalNote: boolean;
   includePatientInfo: boolean;
+  includeRegistrationNote: boolean;
   selectedConditions: string[];
   selectedMedications: string[];
 }
@@ -12,6 +13,7 @@ export interface PatientExportData {
   patientName: string;
   patientId: string;
   clinicalNote: string;
+  registrationNote: string;
   conditions: Array<{
     id: string;
     name: string;
@@ -40,6 +42,10 @@ export async function generatePatientExportZip(
 
   if (selection.includeClinicalNote && data.clinicalNote) {
     zip.file('Clinical_Note.txt', data.clinicalNote);
+  }
+
+  if (selection.includeRegistrationNote && data.registrationNote) {
+    zip.file('Chronic_Registration_Note.txt', data.registrationNote);
   }
 
   if (selection.selectedConditions.length > 0) {
@@ -181,6 +187,13 @@ CLAIM INFORMATION:
   if (selection.includeClinicalNote) {
     content += `CLINICAL NOTE:
 ${data.clinicalNote}
+
+`;
+  }
+
+  if (selection.includeRegistrationNote) {
+    content += `CHRONIC REGISTRATION NOTE:
+${data.registrationNote}
 
 `;
   }
@@ -335,6 +348,24 @@ async function generateClaimSummaryPDF(
     const noteLines = pdf.splitTextToSize(data.clinicalNote, 170);
     pdf.text(noteLines, 20, yPos);
     yPos += noteLines.length * 5 + 10;
+  }
+
+  if (selection.includeRegistrationNote && data.registrationNote) {
+    if (yPos > 250) {
+      pdf.addPage();
+      yPos = 20;
+    }
+
+    pdf.setFontSize(12);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Chronic Registration Note:', 20, yPos);
+    yPos += 7;
+
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(10);
+    const regNoteLines = pdf.splitTextToSize(data.registrationNote, 170);
+    pdf.text(regNoteLines, 20, yPos);
+    yPos += regNoteLines.length * 5 + 10;
   }
 
   if (selectedConditions.length > 0) {
