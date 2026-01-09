@@ -35,40 +35,11 @@ export async function generatePatientExportZip(
 ): Promise<Blob> {
   const zip = new JSZip();
 
-  if (selection.includePatientInfo) {
-    const patientInfoContent = generatePatientInfo(data);
-    zip.file('Patient_Information.txt', patientInfoContent);
-  }
-
-  if (selection.includeClinicalNote && data.clinicalNote) {
-    zip.file('Clinical_Note.txt', data.clinicalNote);
-  }
-
-  if (selection.includeRegistrationNote && data.registrationNote) {
-    zip.file('Chronic_Registration_Note.txt', data.registrationNote);
-  }
-
-  if (selection.selectedConditions.length > 0) {
-    const conditionsContent = generateConditionsDocument(data, selection.selectedConditions);
-    zip.file('Diagnosis_ICD_Codes.txt', conditionsContent);
-
-    const conditionsPdf = await generateConditionsPDF(data, selection.selectedConditions);
-    zip.file('Diagnosis_ICD_Codes.pdf', conditionsPdf);
-  }
-
-  if (selection.selectedMedications.length > 0) {
-    const medicationsContent = generateMedicationsDocument(data, selection.selectedMedications);
-    zip.file('Prescription_Medications.txt', medicationsContent);
-
-    const medicationsPdf = await generateMedicationsPDF(data, selection.selectedMedications);
-    zip.file('Prescription_Medications.pdf', medicationsPdf);
-  }
-
   const claimSummaryContent = generateClaimSummary(data, selection);
-  zip.file('Claim_Summary.txt', claimSummaryContent);
+  zip.file('Patient_Claim_Package.txt', claimSummaryContent);
 
   const claimSummaryPdf = await generateClaimSummaryPDF(data, selection);
-  zip.file('Claim_Summary.pdf', claimSummaryPdf);
+  zip.file('Patient_Claim_Package.pdf', claimSummaryPdf);
 
   return await zip.generateAsync({ type: 'blob' });
 }
@@ -171,57 +142,87 @@ function generateClaimSummary(
   const selectedConditions = data.conditions.filter(c => selection.selectedConditions.includes(c.id));
   const selectedMedications = data.medications.filter(m => selection.selectedMedications.includes(m.id));
 
-  let content = `MEDICAL CLAIM SUMMARY
-${'='.repeat(50)}
+  let content = `PATIENT CLAIM PACKAGE
+${'='.repeat(70)}
 
-Patient: ${data.patientName}
+Patient Name: ${data.patientName}
 Patient ID: ${data.patientId}
 Date Generated: ${new Date().toLocaleDateString()}
 
-${'='.repeat(50)}
-
-CLAIM INFORMATION:
+${'='.repeat(70)}
 
 `;
 
-  if (selection.includeClinicalNote) {
+  if (selection.includePatientInfo) {
+    content += `PATIENT INFORMATION:
+${'-'.repeat(70)}
+
+Patient: ${data.patientName}
+Patient ID: ${data.patientId}
+Date: ${new Date().toLocaleDateString()}
+
+This package contains medical information for claim submission purposes.
+
+`;
+  }
+
+  if (selection.includeClinicalNote && data.clinicalNote) {
     content += `CLINICAL NOTE:
+${'-'.repeat(70)}
+
 ${data.clinicalNote}
 
 `;
   }
 
-  if (selection.includeRegistrationNote) {
+  if (selection.includeRegistrationNote && data.registrationNote) {
     content += `CHRONIC REGISTRATION NOTE:
+${'-'.repeat(70)}
+
 ${data.registrationNote}
 
 `;
   }
 
   if (selectedConditions.length > 0) {
-    content += `DIAGNOSED CONDITIONS (${selectedConditions.length}):
+    content += `DIAGNOSIS AND ICD-10 CODES:
+${'-'.repeat(70)}
+
+Total Conditions: ${selectedConditions.length}
+
 `;
     selectedConditions.forEach((condition, index) => {
-      content += `  ${index + 1}. ${condition.name} (${condition.icdCode})
+      content += `${index + 1}. ${condition.name}
+   ICD-10 Code: ${condition.icdCode}
+   Description: ${condition.icdDescription}
+
 `;
     });
-    content += '\n';
   }
 
   if (selectedMedications.length > 0) {
-    content += `PRESCRIBED MEDICATIONS (${selectedMedications.length}):
+    content += `PRESCRIPTION MEDICATIONS:
+${'-'.repeat(70)}
+
+Total Medications: ${selectedMedications.length}
+
 `;
     selectedMedications.forEach((med, index) => {
-      content += `  ${index + 1}. ${med.name} - ${med.quantity} units
+      content += `${index + 1}. ${med.name}
+   NAPPI Code: ${med.nappiCode || 'N/A'}
+   Dosage: ${med.dosage || 'As prescribed'}
+   Quantity: ${med.quantity}
+
 `;
     });
-    content += '\n';
   }
 
   content += `
-${'='.repeat(50)}
+${'='.repeat(70)}
 
-This summary contains all selected information for claim submission.
+END OF CLAIM PACKAGE
+
+This package contains all selected information for claim submission.
 Please submit this documentation to your medical aid for claim processing.
 `;
 
@@ -324,23 +325,42 @@ async function generateClaimSummaryPDF(
   const selectedMedications = data.medications.filter(m => selection.selectedMedications.includes(m.id));
   const pdf = new jsPDF();
 
-  pdf.setFontSize(18);
-  pdf.text('Medical Claim Summary', 20, 20);
+  pdf.setFontSize(20);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('Patient Claim Package', 20, 20);
 
   pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'normal');
   pdf.text(`Patient: ${data.patientName}`, 20, 35);
   pdf.text(`Patient ID: ${data.patientId}`, 20, 42);
-  pdf.text(`Date: ${new Date().toLocaleDateString()}`, 20, 49);
+  pdf.text(`Date Generated: ${new Date().toLocaleDateString()}`, 20, 49);
 
   pdf.setLineWidth(0.5);
   pdf.line(20, 55, 190, 55);
 
   let yPos = 65;
 
-  if (selection.includeClinicalNote && data.clinicalNote) {
-    pdf.setFontSize(12);
+  if (selection.includePatientInfo) {
+    pdf.setFontSize(14);
     pdf.setFont('helvetica', 'bold');
-    pdf.text('Clinical Note:', 20, yPos);
+    pdf.text('Patient Information', 20, yPos);
+    yPos += 7;
+
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(10);
+    pdf.text('This package contains medical information for claim submission purposes.', 20, yPos);
+    yPos += 15;
+  }
+
+  if (selection.includeClinicalNote && data.clinicalNote) {
+    if (yPos > 240) {
+      pdf.addPage();
+      yPos = 20;
+    }
+
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Clinical Note', 20, yPos);
     yPos += 7;
 
     pdf.setFont('helvetica', 'normal');
@@ -351,14 +371,14 @@ async function generateClaimSummaryPDF(
   }
 
   if (selection.includeRegistrationNote && data.registrationNote) {
-    if (yPos > 250) {
+    if (yPos > 240) {
       pdf.addPage();
       yPos = 20;
     }
 
-    pdf.setFontSize(12);
+    pdf.setFontSize(14);
     pdf.setFont('helvetica', 'bold');
-    pdf.text('Chronic Registration Note:', 20, yPos);
+    pdf.text('Chronic Registration Note', 20, yPos);
     yPos += 7;
 
     pdf.setFont('helvetica', 'normal');
@@ -369,51 +389,92 @@ async function generateClaimSummaryPDF(
   }
 
   if (selectedConditions.length > 0) {
-    if (yPos > 250) {
+    if (yPos > 240) {
       pdf.addPage();
       yPos = 20;
     }
 
-    pdf.setFontSize(12);
+    pdf.setFontSize(14);
     pdf.setFont('helvetica', 'bold');
-    pdf.text(`Diagnosed Conditions (${selectedConditions.length}):`, 20, yPos);
+    pdf.text(`Diagnosis and ICD-10 Codes`, 20, yPos);
     yPos += 7;
 
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(10);
+    pdf.text(`Total Conditions: ${selectedConditions.length}`, 20, yPos);
+    yPos += 10;
+
     selectedConditions.forEach((condition, index) => {
-      if (yPos > 280) {
+      if (yPos > 270) {
         pdf.addPage();
         yPos = 20;
       }
-      pdf.text(`${index + 1}. ${condition.name} (${condition.icdCode})`, 25, yPos);
+
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(`${index + 1}. ${condition.name}`, 20, yPos);
       yPos += 6;
+
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(`ICD-10 Code: ${condition.icdCode}`, 25, yPos);
+      yPos += 6;
+
+      const descLines = pdf.splitTextToSize(`Description: ${condition.icdDescription}`, 160);
+      pdf.text(descLines, 25, yPos);
+      yPos += descLines.length * 5 + 8;
     });
     yPos += 5;
   }
 
   if (selectedMedications.length > 0) {
-    if (yPos > 250) {
+    if (yPos > 240) {
       pdf.addPage();
       yPos = 20;
     }
 
-    pdf.setFontSize(12);
+    pdf.setFontSize(14);
     pdf.setFont('helvetica', 'bold');
-    pdf.text(`Prescribed Medications (${selectedMedications.length}):`, 20, yPos);
+    pdf.text(`Prescription Medications`, 20, yPos);
     yPos += 7;
 
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(10);
+    pdf.text(`Total Medications: ${selectedMedications.length}`, 20, yPos);
+    yPos += 10;
+
     selectedMedications.forEach((med, index) => {
-      if (yPos > 280) {
+      if (yPos > 270) {
         pdf.addPage();
         yPos = 20;
       }
-      pdf.text(`${index + 1}. ${med.name} - ${med.quantity} units`, 25, yPos);
+
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(`${index + 1}. ${med.name}`, 20, yPos);
       yPos += 6;
+
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(`NAPPI Code: ${med.nappiCode || 'N/A'}`, 25, yPos);
+      yPos += 6;
+      pdf.text(`Dosage: ${med.dosage || 'As prescribed'}`, 25, yPos);
+      yPos += 6;
+      pdf.text(`Quantity: ${med.quantity}`, 25, yPos);
+      yPos += 10;
     });
   }
+
+  if (yPos > 250) {
+    pdf.addPage();
+    yPos = 20;
+  }
+
+  pdf.setLineWidth(0.5);
+  pdf.line(20, yPos, 190, yPos);
+  yPos += 10;
+
+  pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'italic');
+  pdf.text('This package contains all selected information for claim submission.', 20, yPos);
+  yPos += 6;
+  pdf.text('Please submit this documentation to your medical aid for claim processing.', 20, yPos);
 
   return pdf.output('blob');
 }

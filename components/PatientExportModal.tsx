@@ -255,9 +255,9 @@ export default function PatientExportModal({ isOpen, onClose, data }: PatientExp
 
           <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
             <p className="text-sm text-amber-800">
-              <strong>Note:</strong> The exported package will include both PDF and text versions
-              of selected documents, plus a comprehensive claim summary for easy submission to
-              medical aid providers.
+              <strong>Note:</strong> Creates a single comprehensive claim package (PDF + TXT)
+              containing all your selected information in one organized document for easy
+              submission to medical aid providers.
             </p>
           </div>
         </div>
