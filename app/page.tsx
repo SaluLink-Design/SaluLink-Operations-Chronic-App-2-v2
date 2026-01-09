@@ -19,7 +19,9 @@ import OngoingManagement from '@/components/OngoingManagement';
 import MedicationReport from '@/components/MedicationReport';
 import Referral from '@/components/Referral';
 import FinalClaimSummary from '@/components/FinalClaimSummary';
+import PatientExportModal from '@/components/PatientExportModal';
 import { MatchedCondition } from '@/types';
+import type { PatientExportData } from '@/lib/patientExport';
 
 type WorkflowMode = 'new' | 'ongoing' | 'medication' | 'referral';
 
@@ -46,6 +48,7 @@ export default function Home() {
   const [patientId, setPatientId] = useState('');
   const [showCaseActions, setShowCaseActions] = useState(false);
   const [showAllCases, setShowAllCases] = useState(false);
+  const [showPatientExport, setShowPatientExport] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -450,6 +453,40 @@ export default function Home() {
     setShowCaseActions(false);
   };
 
+  const handleSendToPatient = () => {
+    if (!store.currentCaseId) {
+      alert('No case loaded. Please save the case first.');
+      return;
+    }
+    setShowPatientExport(true);
+  };
+
+  const getPatientExportData = (): PatientExportData | null => {
+    if (!store.currentCaseId) return null;
+
+    const currentCase = store.cases.find(c => c.id === store.currentCaseId);
+    if (!currentCase) return null;
+
+    return {
+      patientName: currentCase.patientName,
+      patientId: currentCase.patientId,
+      clinicalNote: currentCase.clinicalNote,
+      conditions: [{
+        id: '1',
+        name: currentCase.condition,
+        icdCode: currentCase.icdCode,
+        icdDescription: currentCase.icdDescription,
+      }],
+      medications: currentCase.medications.map((med, index) => ({
+        id: index.toString(),
+        name: med.medicineNameAndStrength,
+        nappiCode: '',
+        quantity: 1,
+        dosage: med.note || med.cdaAmount || 'As prescribed',
+      })),
+    };
+  };
+
   const steps = [
     { id: 0, title: 'Clinical Note' },
     { id: 1, title: 'Condition' },
@@ -637,6 +674,7 @@ export default function Home() {
                       onOngoingManagement={() => setCurrentWorkflow('ongoing')}
                       onMedicationReport={() => setCurrentWorkflow('medication')}
                       onReferral={() => setCurrentWorkflow('referral')}
+                      onSendToPatient={handleSendToPatient}
                     />
                   )}
                 </>
@@ -798,6 +836,15 @@ export default function Home() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Patient Export Modal */}
+      {showPatientExport && getPatientExportData() && (
+        <PatientExportModal
+          isOpen={showPatientExport}
+          onClose={() => setShowPatientExport(false)}
+          data={getPatientExportData()!}
+        />
       )}
     </div>
   );

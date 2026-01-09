@@ -1,19 +1,20 @@
 'use client';
 
-import { FileText, Repeat, UserPlus } from 'lucide-react';
+import { FileText, Repeat, UserPlus, Send } from 'lucide-react';
 
 interface CaseActionsProps {
   onOngoingManagement: () => void;
   onMedicationReport: () => void;
   onReferral: () => void;
+  onSendToPatient: () => void;
 }
 
-const CaseActions = ({ onOngoingManagement, onMedicationReport, onReferral }: CaseActionsProps) => {
+const CaseActions = ({ onOngoingManagement, onMedicationReport, onReferral, onSendToPatient }: CaseActionsProps) => {
   return (
     <div className="card">
       <h2 className="text-xl font-bold text-gray-900 mb-6">Case Actions</h2>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <button
           onClick={onOngoingManagement}
           className="p-6 border-2 border-gray-200 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-all group text-left"
@@ -50,6 +51,19 @@ const CaseActions = ({ onOngoingManagement, onMedicationReport, onReferral }: Ca
           <h3 className="font-semibold text-gray-900 mb-2">Create Referral</h3>
           <p className="text-sm text-gray-600">
             Refer patient to specialist with case summary
+          </p>
+        </button>
+
+        <button
+          onClick={onSendToPatient}
+          className="p-6 border-2 border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all group text-left"
+        >
+          <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-green-200 transition-colors">
+            <Send className="w-6 h-6 text-green-600" />
+          </div>
+          <h3 className="font-semibold text-gray-900 mb-2">Send to Patient</h3>
+          <p className="text-sm text-gray-600">
+            Export selected information for patient claim submission
           </p>
         </button>
       </div>
