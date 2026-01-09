@@ -87,9 +87,10 @@ export default function Home() {
       if (deduplicatedConditions.length > 0) {
         store.setCurrentStep(1);
       }
-    } catch (error) {
-      alert('Failed to analyze note. Please ensure the Python backend is running on port 8000.');
-      console.error(error);
+    } catch (error: any) {
+      console.error('Analysis error:', error);
+      const errorMessage = error.message || 'Failed to analyze note. Please try again.';
+      alert(`Analysis Error: ${errorMessage}\n\nIf this persists, the backend may be initializing. Please wait a moment and try again.`);
     } finally {
       setIsAnalyzing(false);
     }

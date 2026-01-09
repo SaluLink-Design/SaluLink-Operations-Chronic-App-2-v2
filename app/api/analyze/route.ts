@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// Increase timeout for Vercel Edge Functions (max 60s for hobby tier)
+export const maxDuration = 60;
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -14,25 +17,51 @@ export async function POST(request: NextRequest) {
 
     // Call Python backend
     const backendUrl = process.env.PYTHON_BACKEND_URL || 'http://localhost:8000';
-    const response = await fetch(`${backendUrl}/analyze`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ clinical_note }),
-    });
+    console.log('Calling backend:', backendUrl);
 
-    if (!response.ok) {
-      throw new Error('Python backend request failed');
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 55000); // 55 second timeout
+
+    try {
+      const response = await fetch(`${backendUrl}/analyze`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ clinical_note }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Backend error response:', errorText);
+        throw new Error(`Backend returned ${response.status}: ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log('Analysis successful:', data.matched_conditions?.length || 0, 'conditions found');
+
+      return NextResponse.json(data);
+    } catch (fetchError: any) {
+      clearTimeout(timeoutId);
+      if (fetchError.name === 'AbortError') {
+        console.error('Request timeout after 55 seconds');
+        return NextResponse.json(
+          { error: 'Analysis request timed out. The model may be initializing. Please try again in a moment.' },
+          { status: 504 }
+        );
+      }
+      throw fetchError;
     }
-
-    const data = await response.json();
-    
-    return NextResponse.json(data);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Analysis error:', error);
     return NextResponse.json(
-      { error: 'Failed to analyze clinical note. Make sure the Python backend is running.' },
+      {
+        error: error.message || 'Failed to analyze clinical note. Please check that the backend is accessible.',
+        details: error.toString()
+      },
       { status: 500 }
     );
   }
