@@ -524,11 +524,12 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-xl">S</span>
-              </div>
+              <img
+                src="/3.svg"
+                alt="SaluLink Logo"
+                className="h-10 w-auto"
+              />
               <div>
-                <h1 className="text-xl font-bold text-gray-900">SaluLink</h1>
                 <p className="text-xs text-gray-500">Chronic Treatment App</p>
               </div>
             </div>
@@ -560,10 +561,11 @@ export default function Home() {
           <>
             {/* Progress Steps */}
             <div className="mb-8 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center justify-between">
-                {steps.map((step, index) => (
-                  <div key={step.id} className="flex items-center flex-1">
-                    <div className="flex flex-col items-center flex-1">
+              <div className="flex flex-col">
+                {/* Step circles and connectors */}
+                <div className="flex items-center justify-between mb-3">
+                  {steps.map((step, index) => (
+                    <div key={step.id} className="flex items-center" style={{ flex: index === 0 || index === steps.length - 1 ? '0 1 auto' : '1 1 0' }}>
                       <div
                         className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
                           store.currentStep > step.id
@@ -579,21 +581,28 @@ export default function Home() {
                           step.id + 1
                         )}
                       </div>
-                      <span className={`mt-2 text-sm font-medium ${
+                      {index < steps.length - 1 && (
+                        <div
+                          className={`h-1 flex-1 mx-4 ${
+                            store.currentStep > step.id ? 'bg-green-500' : 'bg-gray-200'
+                          }`}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+                {/* Step titles */}
+                <div className="flex items-start justify-between">
+                  {steps.map((step) => (
+                    <div key={`title-${step.id}`} className="flex-1 text-center" style={{ maxWidth: `${100 / steps.length}%` }}>
+                      <span className={`text-sm font-medium ${
                         store.currentStep >= step.id ? 'text-gray-900' : 'text-gray-500'
                       }`}>
                         {step.title}
                       </span>
                     </div>
-                    {index < steps.length - 1 && (
-                      <div
-                        className={`h-1 flex-1 mx-4 ${
-                          store.currentStep > step.id ? 'bg-green-500' : 'bg-gray-200'
-                        }`}
-                      />
-                    )}
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
 
