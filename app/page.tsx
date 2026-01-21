@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useStore } from '@/lib/store';
 import { DataService } from '@/lib/dataService';
 import { PDFExportService } from '@/lib/pdfExport';
+import { saveCaseToDatabase } from '@/lib/caseService';
 import { Menu, FileDown, Save, CheckCircle, ArrowLeft, ArrowRight, ChevronRight } from 'lucide-react';
 
 // Components
@@ -46,6 +47,9 @@ export default function Home() {
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [patientName, setPatientName] = useState('');
   const [patientId, setPatientId] = useState('');
+  const [patientEmail, setPatientEmail] = useState('');
+  const [patientPhone, setPatientPhone] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
   const [showCaseActions, setShowCaseActions] = useState(false);
   const [showAllCases, setShowAllCases] = useState(false);
   const [showPatientExport, setShowPatientExport] = useState(false);
@@ -177,6 +181,45 @@ export default function Home() {
     };
 
     await pdfService.exportInitialClaimWithAttachments(patientCase);
+  };
+
+  const handleSaveCaseOnly = async () => {
+    if (!patientName || !patientId) {
+      alert('Please enter patient name and ID');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const result = await saveCaseToDatabase({
+        patientName,
+        patientId,
+        patientEmail,
+        patientPhone,
+        clinicalNote: store.clinicalNote,
+        conditionName: store.selectedCondition || '',
+        icdCode: store.selectedIcdCode || '',
+        icdDescription: store.selectedIcdDescription || '',
+        diagnosticTreatments: store.diagnosticTreatments,
+        ongoingTreatments: store.ongoingTreatments,
+        medications: store.medications,
+        medicationNote: store.medicationNote,
+        plan: store.selectedPlan,
+      });
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to save case');
+      }
+
+      store.saveCase(patientName, patientId);
+      setShowSaveModal(false);
+      setShowCaseActions(true);
+      alert('Case saved successfully to database!');
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Failed to save case');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleSaveCase = async (includeAttachments: boolean = false) => {
@@ -798,54 +841,103 @@ export default function Home() {
 
       {/* Save Modal */}
       {showSaveModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
-            <h3 className="text-xl font-bold mb-4">Finalize Patient Case</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              Enter patient details to save the case and export the final claim.
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <h3 className="text-xl font-bold mb-2">Finalize Patient Case</h3>
+            <p className="text-sm text-gray-600 mb-6">
+              Enter patient details to save the case. You can choose to save only or export documents.
             </p>
             <div className="space-y-4">
               <div>
-                <label className="label">Patient Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Patient Name <span className="text-red-500">*</span>
+                </label>
                 <input
                   type="text"
-                  className="input-field"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                   placeholder="Enter patient name"
                   value={patientName}
                   onChange={(e) => setPatientName(e.target.value)}
+                  disabled={isSaving}
                 />
               </div>
               <div>
-                <label className="label">Patient ID</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Patient ID / Medical Record Number <span className="text-red-500">*</span>
+                </label>
                 <input
                   type="text"
-                  className="input-field"
-                  placeholder="Enter patient ID"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  placeholder="Enter patient ID or MRN"
                   value={patientId}
                   onChange={(e) => setPatientId(e.target.value)}
+                  disabled={isSaving}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Patient Email (Optional)
+                </label>
+                <input
+                  type="email"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  placeholder="patient@example.com"
+                  value={patientEmail}
+                  onChange={(e) => setPatientEmail(e.target.value)}
+                  disabled={isSaving}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Patient Phone (Optional)
+                </label>
+                <input
+                  type="tel"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  placeholder="+27 XX XXX XXXX"
+                  value={patientPhone}
+                  onChange={(e) => setPatientPhone(e.target.value)}
+                  disabled={isSaving}
                 />
               </div>
             </div>
-            <div className="space-y-3 mt-6">
-              <button
-                onClick={() => handleSaveCase(false)}
-                className="btn-primary w-full"
-              >
-                Save & Export PDF
-              </button>
-              <button
-                onClick={() => handleSaveCase(true)}
-                className="btn-secondary w-full border-2 border-primary-500 text-primary-600 hover:bg-primary-50"
-              >
-                Save & Export with Attachments (ZIP)
-              </button>
-              <button
-                onClick={() => setShowSaveModal(false)}
-                className="btn-secondary w-full"
-              >
-                Cancel
-              </button>
+
+            <div className="mt-6 pt-4 border-t border-gray-200">
+              <p className="text-sm font-medium text-gray-700 mb-3">Save Options:</p>
+              <div className="space-y-2">
+                <button
+                  onClick={handleSaveCaseOnly}
+                  disabled={isSaving}
+                  className="w-full py-3 px-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Save className="w-5 h-5" />
+                  {isSaving ? 'Saving...' : 'Save Patient Case'}
+                </button>
+                <p className="text-xs text-gray-500 text-center mb-3">or export documents</p>
+                <button
+                  onClick={() => handleSaveCase(false)}
+                  disabled={isSaving}
+                  className="w-full py-2.5 px-4 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Export as PDF
+                </button>
+                <button
+                  onClick={() => handleSaveCase(true)}
+                  disabled={isSaving}
+                  className="w-full py-2.5 px-4 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Export with Attachments (ZIP)
+                </button>
+              </div>
             </div>
+
+            <button
+              onClick={() => setShowSaveModal(false)}
+              disabled={isSaving}
+              className="w-full mt-4 py-2 px-4 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Cancel
+            </button>
           </div>
         </div>
       )}
