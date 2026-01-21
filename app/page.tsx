@@ -79,7 +79,14 @@ export default function Home() {
       store.setExtractedKeywords(data.extracted_keywords || []);
 
       const conditions = data.matched_conditions || [];
-      const deduplicatedConditions = conditions.reduce((acc: MatchedCondition[], current: MatchedCondition) => {
+      const mappedConditions = conditions.map((condition: any) => ({
+        condition: condition.condition,
+        icdCode: condition.icd_code,
+        icdDescription: condition.icd_description,
+        similarityScore: condition.similarity_score || 0
+      }));
+
+      const deduplicatedConditions = mappedConditions.reduce((acc: MatchedCondition[], current: MatchedCondition) => {
         const existingIndex = acc.findIndex(item => item.condition === current.condition);
         if (existingIndex === -1) {
           acc.push(current);
