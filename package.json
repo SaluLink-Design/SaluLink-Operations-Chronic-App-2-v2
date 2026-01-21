@@ -10,6 +10,7 @@
     "python-api": "cd python-backend && uvicorn main:app --reload --port 8000"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.91.0",
     "@tanstack/react-query": "^5.28.0",
     "axios": "^1.6.8",
     "date-fns": "^3.6.0",

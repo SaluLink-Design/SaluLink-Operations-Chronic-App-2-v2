@@ -1,8 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import { PatientCase } from '@/types';
-import { FileText, CheckCircle, Pill, Stethoscope, FileBarChart, ClipboardList } from 'lucide-react';
+import { FileText, CheckCircle, Pill, Stethoscope, FileBarChart, ClipboardList, Save } from 'lucide-react';
 import { format } from 'date-fns';
+import SaveCaseModal from './SaveCaseModal';
+import { saveCaseToDatabase } from '@/lib/caseService';
 
 interface FinalClaimSummaryProps {
   clinicalNote: string;
@@ -33,6 +36,34 @@ const FinalClaimSummary = ({
   onBack,
   onNewClaim,
 }: FinalClaimSummaryProps) => {
+  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+
+  const handleSaveCase = async (
+    patientName: string,
+    patientId: string,
+    patientEmail?: string,
+    patientPhone?: string
+  ) => {
+    const result = await saveCaseToDatabase({
+      patientName,
+      patientId,
+      patientEmail,
+      patientPhone,
+      clinicalNote,
+      conditionName: selectedCondition,
+      icdCode: selectedIcdCode,
+      icdDescription: selectedIcdDescription,
+      diagnosticTreatments,
+      ongoingTreatments,
+      medications,
+      medicationNote,
+      plan: selectedPlan,
+    });
+
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to save case');
+    }
+  };
   return (
     <div className="space-y-6">
       <div className="card">
@@ -248,6 +279,14 @@ const FinalClaimSummary = ({
           </div>
 
           <button
+            onClick={() => setIsSaveModalOpen(true)}
+            className="w-full py-3 px-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+          >
+            <Save className="w-5 h-5" />
+            Save Case for Patient Records
+          </button>
+
+          <button
             onClick={onNewClaim}
             className="w-full py-3 px-4 bg-gradient-to-r from-primary-600 to-blue-600 text-white font-semibold rounded-lg hover:from-primary-700 hover:to-blue-700 transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
           >
@@ -256,6 +295,12 @@ const FinalClaimSummary = ({
           </button>
         </div>
       </div>
+
+      <SaveCaseModal
+        isOpen={isSaveModalOpen}
+        onClose={() => setIsSaveModalOpen(false)}
+        onSave={handleSaveCase}
+      />
     </div>
   );
 };
