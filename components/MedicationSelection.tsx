@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Pill, Check, X, AlertTriangle } from 'lucide-react';
+import { Pill, Check, X } from 'lucide-react';
 import { MedicineItem, SelectedMedication, MedicalPlan } from '@/types';
 import { DataService } from '@/lib/dataService';
 
@@ -35,36 +35,6 @@ const MedicationSelection = ({
   const [selectedClass, setSelectedClass] = useState<string | null>(null);
 
   const plans: MedicalPlan[] = ['Core', 'Priority', 'Saver', 'Executive', 'Comprehensive'];
-
-  const isDiabetesCondition = condition === 'Diabetes mellitus Type 1' || condition === 'Diabetes mellitus Type 2';
-
-  const insulinClasses = [
-    'Anti-diabetic agents: Fast-acting Insulins',
-    'Anti-diabetic agents: Intermediate-acting or long-acting combined with fast-acting Insulins (Biphasic)',
-    'Anti-diabetic agents: Long-acting Insulins'
-  ];
-
-  const getInsulinLimit = () => {
-    if (['Executive', 'Comprehensive'].includes(selectedPlan)) {
-      return 720;
-    }
-    return 700;
-  };
-
-  const parseAmount = (cdaString: string): number => {
-    const match = cdaString.match(/R\s*([\d,]+(?:\.\d{2})?)/);
-    if (match) {
-      return parseFloat(match[1].replace(/,/g, ''));
-    }
-    return 0;
-  };
-
-  const calculateInsulinTotal = (medsToInclude: SelectedMedication[] = medications): number => {
-    const allMeds = [...medsToInclude, ...excludedMedications];
-    return allMeds
-      .filter(med => insulinClasses.includes(med.medicineClass))
-      .reduce((sum, med) => sum + parseAmount(med.cdaAmount), 0);
-  };
 
   useEffect(() => {
     const medicines = DataService.getMedicinesForCondition(condition);
@@ -103,18 +73,6 @@ const MedicationSelection = ({
       cdaAmount: getCdaForPlan(medicine)
     };
 
-    if (isDiabetesCondition && insulinClasses.includes(medicine.medicineClass)) {
-      const currentInsulinTotal = calculateInsulinTotal();
-      const medicationCost = parseAmount(newMedication.cdaAmount);
-      const newTotal = currentInsulinTotal + medicationCost;
-      const limit = getInsulinLimit();
-
-      if (newTotal > limit) {
-        alert(`Cannot add this insulin medication. It would exceed the monthly insulin limit of R${limit}. Current total: R${currentInsulinTotal.toFixed(2)}, This medication: R${medicationCost.toFixed(2)}, New total would be: R${newTotal.toFixed(2)}`);
-        return;
-      }
-    }
-
     onAddMedication(newMedication);
   };
   
@@ -140,40 +98,6 @@ const MedicationSelection = ({
         </div>
       </div>
 
-      {/* Insulin Limit Warning for Diabetes */}
-      {isDiabetesCondition && (
-        <div className="card bg-blue-50 border-2 border-blue-200">
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
-            <div className="flex-1">
-              <h3 className="font-semibold text-blue-900 mb-2">Insulin Monthly Limit</h3>
-              <p className="text-sm text-blue-800 mb-3">
-                Please note that an overall monthly limit applies to Insulins across the different Insulin classes.
-                The overall monthly limit for KeyCare, Smart, Priority, Core and Saver plans is <strong>R700</strong>.
-                The overall monthly limit for Executive and Comprehensive plans is <strong>R720</strong>.
-              </p>
-              <div className="bg-white rounded-lg p-3 border border-blue-200">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium text-gray-700">Current Insulin Total:</span>
-                  <span className="text-lg font-bold text-blue-700">R{calculateInsulinTotal().toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium text-gray-700">Plan Limit ({selectedPlan}):</span>
-                  <span className="text-lg font-bold text-gray-900">R{getInsulinLimit().toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between items-center pt-2 border-t border-blue-100">
-                  <span className="text-sm font-medium text-gray-700">Remaining:</span>
-                  <span className={`text-lg font-bold ${
-                    (getInsulinLimit() - calculateInsulinTotal()) > 0 ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    R{(getInsulinLimit() - calculateInsulinTotal()).toFixed(2)}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
       
       {/* Medicine Selection */}
       <div className="card">
@@ -213,11 +137,7 @@ const MedicationSelection = ({
             );
             const cdaAmount = getCdaForPlan(medicine);
 
-            const isInsulin = isDiabetesCondition && insulinClasses.includes(medicine.medicineClass);
-            const medicationCost = parseAmount(cdaAmount);
-            const currentInsulinTotal = calculateInsulinTotal();
-            const wouldExceedLimit = isInsulin && (currentInsulinTotal + medicationCost > getInsulinLimit());
-            const isDisabled = isSelected || isExcluded || wouldExceedLimit;
+            const isDisabled = isSelected || isExcluded;
 
             return (
               <button
@@ -225,9 +145,7 @@ const MedicationSelection = ({
                 onClick={() => handleSelectMedication(medicine)}
                 disabled={isDisabled}
                 className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
-                  wouldExceedLimit
-                    ? 'border-red-300 bg-red-50 cursor-not-allowed opacity-60'
-                    : isSelected || isExcluded
+                  isSelected || isExcluded
                     ? 'border-green-500 bg-green-50 cursor-not-allowed'
                     : 'border-gray-200 hover:border-purple-300 bg-white'
                 }`}
@@ -246,11 +164,6 @@ const MedicationSelection = ({
                       {isExcluded && (
                         <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded font-medium">
                           Already Prescribed
-                        </span>
-                      )}
-                      {wouldExceedLimit && (
-                        <span className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded font-medium">
-                          Exceeds Insulin Limit
                         </span>
                       )}
                     </div>
