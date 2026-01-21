@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useStore } from '@/lib/store';
 import { DataService } from '@/lib/dataService';
 import { PDFExportService } from '@/lib/pdfExport';
-import { Menu, FileDown, Save, CheckCircle, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Menu, FileDown, Save, CheckCircle, ArrowLeft, ArrowRight, ChevronRight } from 'lucide-react';
 
 // Components
 import ClinicalNoteInput from '@/components/ClinicalNoteInput';
@@ -587,11 +587,21 @@ export default function Home() {
                       </span>
                     </div>
                     {index < steps.length - 1 && (
-                      <div
-                        className={`h-1 flex-1 mx-4 ${
-                          store.currentStep > step.id ? 'bg-green-500' : 'bg-gray-200'
-                        }`}
-                      />
+                      <div className="relative flex-1 mx-4 flex items-center">
+                        <div
+                          className={`h-1 w-full ${
+                            store.currentStep > step.id ? 'bg-green-500' : 'bg-gray-200'
+                          }`}
+                        />
+                        {store.currentStep === step.id + 1 && (
+                          <div className="absolute inset-0 flex items-center">
+                            <ChevronRight
+                              className="w-6 h-6 text-green-500 animate-slide-arrow"
+                              style={{ animation: 'slideArrow 0.8s ease-out' }}
+                            />
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
                 ))}
