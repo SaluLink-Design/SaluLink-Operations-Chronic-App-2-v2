@@ -13,6 +13,11 @@ export interface MedicineItem {
   medicineClass: string;
   activeIngredient: string;
   medicineNameAndStrength: string;
+  planRestriction?: {
+    type: 'only' | 'not_available';
+    plans: MedicalPlan[];
+    originalText: string;
+  };
 }
 
 export interface TreatmentBasketItem {

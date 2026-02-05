@@ -105,6 +105,22 @@ const MedicationSelection = ({
 
     if (isAlreadySelected || isExcluded) return;
 
+    // Check plan restrictions
+    const isAllowed = DataService.isMedicationAllowedForPlan(medicine, selectedPlan);
+    if (!isAllowed && medicine.planRestriction) {
+      const { type, plans, originalText } = medicine.planRestriction;
+      let message = '';
+      
+      if (type === 'only') {
+        message = `⚠️ Plan Coverage Alert\n\nThis medication is not covered by the ${selectedPlan} plan.\n\n${originalText}\n\nThis medication is only available on: ${plans.join(', ')} plans.\n\nPlease either:\n• Select a different medication, OR\n• Change the patient's plan to one of the allowed plans`;
+      } else if (type === 'not_available') {
+        message = `⚠️ Plan Coverage Alert\n\nThis medication is not available on the ${selectedPlan} plan.\n\n${originalText}\n\nPlease either:\n• Select a different medication, OR\n• Change the patient's plan to access this medication`;
+      }
+      
+      alert(message);
+      return;
+    }
+
     const newMedication: SelectedMedication = {
       medicineClass: medicine.medicineClass,
       activeIngredient: medicine.activeIngredient,
@@ -211,6 +227,35 @@ const MedicationSelection = ({
           </select>
         </div>
 
+        {/* Plan Coverage Summary */}
+        {(() => {
+          const restrictedCount = filteredMedications.filter(
+            m => !DataService.isMedicationAllowedForPlan(m, selectedPlan)
+          ).length;
+          const totalCount = filteredMedications.length;
+          const availableCount = totalCount - restrictedCount;
+
+          if (restrictedCount > 0) {
+            return (
+              <div className="mb-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-orange-900">
+                      Plan Coverage Notice
+                    </p>
+                    <p className="text-xs text-orange-700 mt-1">
+                      <strong>{restrictedCount}</strong> of <strong>{totalCount}</strong> medications are not covered by the <strong>{selectedPlan}</strong> plan.
+                      {' '}<strong>{availableCount}</strong> medications are available for selection.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            );
+          }
+          return null;
+        })()}
+
         {/* Medicine List */}
         <div className="space-y-2 max-h-[500px] overflow-y-auto">
           {filteredMedications.map((medicine, index) => {
@@ -226,7 +271,12 @@ const MedicationSelection = ({
             const medicationCost = parseAmount(cdaAmount);
             const currentInsulinTotal = calculateInsulinTotal();
             const wouldExceedLimit = isInsulin && (currentInsulinTotal + medicationCost > getInsulinLimit());
-            const isDisabled = isSelected || isExcluded || wouldExceedLimit;
+            
+            // Check plan restrictions
+            const isAllowedForPlan = DataService.isMedicationAllowedForPlan(medicine, selectedPlan);
+            const isRestricted = !isAllowedForPlan;
+            
+            const isDisabled = isSelected || isExcluded || wouldExceedLimit || isRestricted;
 
             return (
               <button
@@ -234,7 +284,9 @@ const MedicationSelection = ({
                 onClick={() => handleSelectMedication(medicine)}
                 disabled={isDisabled}
                 className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
-                  wouldExceedLimit
+                  isRestricted
+                    ? 'border-orange-300 bg-orange-50 cursor-not-allowed opacity-75'
+                    : wouldExceedLimit
                     ? 'border-red-300 bg-red-50 cursor-not-allowed opacity-60'
                     : isSelected || isExcluded
                     ? 'border-green-500 bg-green-50 cursor-not-allowed'
@@ -257,6 +309,12 @@ const MedicationSelection = ({
                           Already Prescribed
                         </span>
                       )}
+                      {isRestricted && medicine.planRestriction && (
+                        <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded font-medium flex items-center gap-1">
+                          <AlertTriangle className="w-3 h-3" />
+                          Not Covered by {selectedPlan} Plan
+                        </span>
+                      )}
                       {wouldExceedLimit && (
                         <span className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded font-medium">
                           Exceeds Insulin Limit
@@ -273,12 +331,27 @@ const MedicationSelection = ({
                       <p className="text-primary-600 font-medium">
                         CDA Amount: {cdaAmount}
                       </p>
+                      {isRestricted && medicine.planRestriction && (
+                        <div className="mt-2 pt-2 border-t border-orange-200">
+                          <p className="text-orange-700 font-medium text-xs">
+                            {medicine.planRestriction.type === 'only' 
+                              ? `✓ Available on: ${medicine.planRestriction.plans.join(', ')} plans only`
+                              : `✗ Not available on: ${medicine.planRestriction.plans.join(', ')} plan(s)`
+                            }
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
 
                   {isSelected && (
                     <div className="ml-4 w-6 h-6 bg-green-600 rounded-full flex items-center justify-center flex-shrink-0">
                       <Check className="w-4 h-4 text-white" />
+                    </div>
+                  )}
+                  {isRestricted && !isSelected && (
+                    <div className="ml-4 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
+                      <X className="w-4 h-4 text-white" />
                     </div>
                   )}
                 </div>

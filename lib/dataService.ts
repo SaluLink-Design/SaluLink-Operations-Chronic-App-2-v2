@@ -1,5 +1,5 @@
 import Papa from 'papaparse'; // TODO: Ensure 'papaparse' is installed with `npm install papaparse` and typing with `npm install --save-dev @types/papaparse`
-import type { ChronicCondition, MedicineItem, TreatmentBasketItem } from '@/types';
+import type { ChronicCondition, MedicineItem, TreatmentBasketItem, MedicalPlan } from '@/types';
 
 // Parse CSV data from public folder
 export class DataService {
@@ -7,6 +7,76 @@ export class DataService {
   private static medicines: MedicineItem[] = [];
   private static treatmentBasket: TreatmentBasketItem[] = [];
   private static initialized = false;
+
+  /**
+   * Parse plan restrictions from medication name/description
+   * Examples:
+   * - "(Only Executive and Comprehensive plans)" -> { type: 'only', plans: ['Executive', 'Comprehensive'] }
+   * - "(Not available on KeyCare plans)" -> { type: 'not_available', plans: ['Core'] }
+   */
+  private static parsePlanRestriction(medicineNameAndStrength: string): MedicineItem['planRestriction'] {
+    const text = medicineNameAndStrength.toLowerCase();
+    
+    // Check for "Only ... plans" restriction
+    const onlyMatch = medicineNameAndStrength.match(/\(Only\s+(.+?)\s+plans?\)/i);
+    if (onlyMatch) {
+      const planText = onlyMatch[1].toLowerCase();
+      const plans: MedicalPlan[] = [];
+      
+      if (planText.includes('executive')) plans.push('Executive');
+      if (planText.includes('comprehensive')) plans.push('Comprehensive');
+      if (planText.includes('core')) plans.push('Core');
+      if (planText.includes('priority')) plans.push('Priority');
+      if (planText.includes('saver')) plans.push('Saver');
+      
+      return {
+        type: 'only',
+        plans,
+        originalText: onlyMatch[0]
+      };
+    }
+    
+    // Check for "Not available on ... plans" restriction
+    const notAvailableMatch = medicineNameAndStrength.match(/\(Not\s+available\s+on\s+(.+?)\s+plans?\)/i);
+    if (notAvailableMatch) {
+      const planText = notAvailableMatch[1].toLowerCase();
+      const plans: MedicalPlan[] = [];
+      
+      // KeyCare is mapped to Core plan
+      if (planText.includes('keycare') || planText.includes('core')) plans.push('Core');
+      if (planText.includes('priority')) plans.push('Priority');
+      if (planText.includes('saver')) plans.push('Saver');
+      if (planText.includes('executive')) plans.push('Executive');
+      if (planText.includes('comprehensive')) plans.push('Comprehensive');
+      
+      return {
+        type: 'not_available',
+        plans,
+        originalText: notAvailableMatch[0]
+      };
+    }
+    
+    return undefined;
+  }
+
+  /**
+   * Check if a medication is allowed for a specific plan
+   */
+  static isMedicationAllowedForPlan(medicine: MedicineItem, plan: MedicalPlan): boolean {
+    if (!medicine.planRestriction) return true;
+    
+    const { type, plans } = medicine.planRestriction;
+    
+    if (type === 'only') {
+      // Medication is ONLY available on specific plans
+      return plans.includes(plan);
+    } else if (type === 'not_available') {
+      // Medication is NOT available on specific plans
+      return !plans.includes(plan);
+    }
+    
+    return true;
+  }
 
   static async initialize() {
     if (this.initialized) return;
@@ -32,14 +102,18 @@ export class DataService {
       
       this.medicines = medicineParsed.data
         .filter(row => row['CHRONIC DISEASE LIST CONDITION'])
-        .map(row => ({
-          condition: row['CHRONIC DISEASE LIST CONDITION'],
-          cdaCore: row['CDA FOR CORE, PRIORITY AND SAVER PLANS'] || '',
-          cdaExecutive: row['CDA FOR EXECUTIVE AND COMPREHENSIVE PLANS'] || '',
-          medicineClass: row['MEDICINE CLASS'] || '',
-          activeIngredient: row['ACTIVE INGREDIENT'] || '',
-          medicineNameAndStrength: row['MEDICINE NAME AND STRENGTH'] || '',
-        }));
+        .map(row => {
+          const medicineNameAndStrength = row['MEDICINE NAME AND STRENGTH'] || '';
+          return {
+            condition: row['CHRONIC DISEASE LIST CONDITION'],
+            cdaCore: row['CDA FOR CORE, PRIORITY AND SAVER PLANS'] || '',
+            cdaExecutive: row['CDA FOR EXECUTIVE AND COMPREHENSIVE PLANS'] || '',
+            medicineClass: row['MEDICINE CLASS'] || '',
+            activeIngredient: row['ACTIVE INGREDIENT'] || '',
+            medicineNameAndStrength,
+            planRestriction: this.parsePlanRestriction(medicineNameAndStrength),
+          };
+        });
 
       // Load Treatment Basket
       const basketResponse = await fetch('/Treatment Basket.csv');
