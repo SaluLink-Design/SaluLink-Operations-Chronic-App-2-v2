@@ -13,6 +13,7 @@ import ConditionSelection from '@/components/ConditionSelection';
 import IcdCodeSelection from '@/components/IcdCodeSelection';
 import DiagnosticBasket from '@/components/DiagnosticBasket';
 import MedicationSelection from '@/components/MedicationSelection';
+import ChronicRegistrationNote from '@/components/ChronicRegistrationNote';
 import Sidebar from '@/components/Sidebar';
 import AllCasesView from '@/components/AllCasesView';
 import CaseActions from '@/components/CaseActions';
@@ -115,8 +116,6 @@ export default function Home() {
   };
 
   const handleNextStep = () => {
-    const nextStep = store.currentStep + 1;
-    
     // Validation
     if (store.currentStep === 1 && !store.selectedCondition) {
       alert('Please select a condition');
@@ -127,10 +126,39 @@ export default function Home() {
       return;
     }
     
+    // Handle medication substeps
+    if (store.currentStep === 4) {
+      if (store.medicationSubstep === 1) {
+        // Moving from medication selection to registration note
+        if (store.medications.length === 0) {
+          alert('Please select at least one medication before proceeding');
+          return;
+        }
+        store.setMedicationSubstep(2);
+        return;
+      } else if (store.medicationSubstep === 2) {
+        // Moving from registration note to final claim
+        // Optional validation for registration note
+        if (!store.medicationNote && !store.medications.some(m => m.note)) {
+          const proceed = confirm('No registration note has been entered. Do you want to proceed without a note?');
+          if (!proceed) return;
+        }
+        store.setCurrentStep(5);
+        return;
+      }
+    }
+    
+    const nextStep = store.currentStep + 1;
     store.setCurrentStep(nextStep);
   };
 
   const handlePreviousStep = () => {
+    // Handle medication substeps
+    if (store.currentStep === 4 && store.medicationSubstep === 2) {
+      store.setMedicationSubstep(1);
+      return;
+    }
+    
     store.setCurrentStep(Math.max(0, store.currentStep - 1));
   };
 
@@ -634,6 +662,11 @@ export default function Home() {
                         store.currentStep >= step.id ? 'text-gray-900' : 'text-gray-500'
                       }`}>
                         {step.title}
+                        {step.id === 4 && store.currentStep === 4 && (
+                          <span className="block text-xs text-primary-600 mt-0.5">
+                            {store.medicationSubstep === 1 ? '(Selection)' : '(Registration Note)'}
+                          </span>
+                        )}
                       </span>
                     </div>
                     {index < steps.length - 1 && (
@@ -701,17 +734,27 @@ export default function Home() {
               )}
 
               {store.currentStep === 4 && store.selectedCondition && (
-                <MedicationSelection
-                  condition={store.selectedCondition}
-                  selectedPlan={store.selectedPlan}
-                  medications={store.medications}
-                  medicationNote={store.medicationNote}
-                  onAddMedication={store.addMedication}
-                  onRemoveMedication={store.removeMedication}
-                  onSetMedicationNote={store.setMedicationNote}
-                  onUpdateMedicationNote={store.updateMedicationNote}
-                  onSetPlan={store.setSelectedPlan}
-                />
+                <>
+                  {store.medicationSubstep === 1 && (
+                    <MedicationSelection
+                      condition={store.selectedCondition}
+                      selectedPlan={store.selectedPlan}
+                      medications={store.medications}
+                      onAddMedication={store.addMedication}
+                      onRemoveMedication={store.removeMedication}
+                      onSetPlan={store.setSelectedPlan}
+                    />
+                  )}
+                  
+                  {store.medicationSubstep === 2 && (
+                    <ChronicRegistrationNote
+                      medications={store.medications}
+                      medicationNote={store.medicationNote}
+                      onSetMedicationNote={store.setMedicationNote}
+                      onUpdateMedicationNote={store.updateMedicationNote}
+                    />
+                  )}
+                </>
               )}
 
               {store.currentStep === 5 && (
@@ -750,13 +793,17 @@ export default function Home() {
                     className="btn-secondary flex items-center gap-2"
                   >
                     <ArrowLeft className="w-5 h-5" />
-                    Previous
+                    {store.currentStep === 4 && store.medicationSubstep === 2 ? 'Back to Medications' : 'Previous'}
                   </button>
                   <button
                     onClick={handleNextStep}
                     className="btn-primary flex items-center gap-2"
                   >
-                    Next
+                    {store.currentStep === 4 && store.medicationSubstep === 1
+                      ? 'Continue to Registration Note'
+                      : store.currentStep === 4 && store.medicationSubstep === 2
+                      ? 'Continue to Final Claim'
+                      : 'Next'}
                     <ArrowRight className="w-5 h-5" />
                   </button>
                 </div>

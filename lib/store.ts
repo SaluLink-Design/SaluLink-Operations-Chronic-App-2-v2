@@ -5,6 +5,7 @@ import { PatientCase, TreatmentItem, SelectedMedication, MedicalPlan, Medication
 interface AppState {
   // Current workflow state
   currentStep: number;
+  medicationSubstep: number; // 1 = medication selection, 2 = registration note
   clinicalNote: string;
   extractedKeywords: string[];
   selectedCondition: string | null;
@@ -30,6 +31,7 @@ interface AppState {
   setExtractedKeywords: (keywords: string[]) => void;
   setSelectedCondition: (condition: string, icdCode: string, description: string) => void;
   setCurrentStep: (step: number) => void;
+  setMedicationSubstep: (substep: number) => void;
   
   addDiagnosticTreatment: (treatment: TreatmentItem) => void;
   updateDiagnosticTreatment: (index: number, treatment: Partial<TreatmentItem>) => void;
@@ -60,6 +62,7 @@ export const useStore = create<AppState>()(
     (set, get) => ({
       // Initial state
       currentStep: 0,
+      medicationSubstep: 1,
       clinicalNote: '',
       extractedKeywords: [],
       selectedCondition: null,
@@ -85,7 +88,9 @@ export const useStore = create<AppState>()(
         selectedIcdDescription: description,
       }),
       
-      setCurrentStep: (step) => set({ currentStep: step }),
+      setCurrentStep: (step) => set({ currentStep: step, medicationSubstep: 1 }),
+      
+      setMedicationSubstep: (substep) => set({ medicationSubstep: substep }),
       
       addDiagnosticTreatment: (treatment) => set((state) => ({
         diagnosticTreatments: [...state.diagnosticTreatments, treatment],
@@ -257,6 +262,7 @@ export const useStore = create<AppState>()(
       
       resetWorkflow: () => set({
         currentStep: 0,
+        medicationSubstep: 1,
         clinicalNote: '',
         extractedKeywords: [],
         selectedCondition: null,

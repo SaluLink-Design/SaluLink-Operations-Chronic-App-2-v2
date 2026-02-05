@@ -9,11 +9,8 @@ interface MedicationSelectionProps {
   condition: string;
   selectedPlan: MedicalPlan;
   medications: SelectedMedication[];
-  medicationNote: string;
   onAddMedication: (medication: SelectedMedication) => void;
   onRemoveMedication: (index: number) => void;
-  onSetMedicationNote: (note: string) => void;
-  onUpdateMedicationNote?: (index: number, note: string) => void;
   onSetPlan: (plan: MedicalPlan) => void;
   excludedMedications?: SelectedMedication[];
 }
@@ -22,11 +19,8 @@ const MedicationSelection = ({
   condition,
   selectedPlan,
   medications,
-  medicationNote,
   onAddMedication,
   onRemoveMedication,
-  onSetMedicationNote,
-  onUpdateMedicationNote,
   onSetPlan,
   excludedMedications = []
 }: MedicationSelectionProps) => {
@@ -364,11 +358,11 @@ const MedicationSelection = ({
       {/* Selected Medications */}
       {medications.length > 0 && (
         <div className="card">
-          <h3 className="font-semibold text-lg mb-4">Selected Medications</h3>
-          <div className="space-y-4 mb-4">
+          <h3 className="font-semibold text-lg mb-4">Selected Medications ({medications.length})</h3>
+          <div className="space-y-3">
             {medications.map((med, index) => (
               <div key={index} className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                <div className="flex items-start justify-between mb-3">
+                <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <p className="font-medium text-gray-900">{med.medicineNameAndStrength}</p>
                     <p className="text-sm text-gray-600">{med.activeIngredient}</p>
@@ -381,49 +375,9 @@ const MedicationSelection = ({
                     <X className="w-5 h-5" />
                   </button>
                 </div>
-
-                {medications.length > 1 && onUpdateMedicationNote && (
-                  <div>
-                    <label className="label text-sm">Chronic Registration Note for this medication</label>
-                    <textarea
-                      className="textarea-field text-sm"
-                      rows={3}
-                      placeholder={`Enter registration note for ${med.medicineNameAndStrength}...`}
-                      value={med.note || ''}
-                      onChange={(e) => onUpdateMedicationNote(index, e.target.value)}
-                    />
-                  </div>
-                )}
               </div>
             ))}
           </div>
-
-          {/* General Medication Registration Note (shown when 1 medication or as overall note) */}
-          {medications.length === 1 && (
-            <div>
-              <label className="label">Chronic Medication Registration Note</label>
-              <textarea
-                className="textarea-field"
-                rows={4}
-                placeholder="Enter medication registration note explaining the prescription rationale..."
-                value={medicationNote}
-                onChange={(e) => onSetMedicationNote(e.target.value)}
-              />
-            </div>
-          )}
-
-          {medications.length > 1 && (
-            <div>
-              <label className="label">Overall Registration Note (Optional)</label>
-              <textarea
-                className="textarea-field"
-                rows={3}
-                placeholder="Enter any overall notes for all medications..."
-                value={medicationNote}
-                onChange={(e) => onSetMedicationNote(e.target.value)}
-              />
-            </div>
-          )}
         </div>
       )}
     </div>
