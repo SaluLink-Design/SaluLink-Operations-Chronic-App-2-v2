@@ -27,9 +27,9 @@ Cardiomyopathy,Full blood count,3755,1,Drug level in biological fluid,4081,3,
 Cardiomyopathy,Thyrotropin (TSH),4507,1,Threshold testing: own equipment,1268,1,
 Cardiomyopathy,"X-ray of the chest two views, PA and lateral",30110,1,"X-ray of the chest two views, PA and lateral",30110,1,
 Cardiomyopathy,Total cholesterol,4027,1,Programming of the Atrioventricular sequential pacemaker,1270,1,
-Chronic obstructive pulmonary disease (COPD),"X-ray of the chest two views, PA and lateral",30110,1,Peak flow,1192,2,1
-Chronic obstructive pulmonary disease (COPD),Flow volume test,1188,1,Flow volume test,1186,1,
-Chronic obstructive pulmonary disease (COPD),Alpha-1-antitrypsin,4005,1,Drug level in biological fluid,4081,2,
+Chronic Obstructive Pulmonary Disease,"X-ray of the chest two views, PA and lateral",30110,1,Peak flow,1192,2,1
+Chronic Obstructive Pulmonary Disease,Flow volume test,1188,1,Flow volume test,1186,1,
+Chronic Obstructive Pulmonary Disease,Alpha-1-antitrypsin,4005,1,Drug level in biological fluid,4081,2,
 Chronic renal disease,ECG – Electrocardiogram,1232,1,ECG – Electrocardiogram,1232,2,2
 Chronic renal disease,Full blood count,3755,1,Full blood count,3755,4,
 Chronic renal disease,U & E only,4171,1,U & E only,4171,4,
