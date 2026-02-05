@@ -242,12 +242,12 @@ Hypothyroidism,E03.8+G13.2*,"Other specified hypothyroidism/Systemic atrophy pri
 Hypothyroidism,E03.9,"Hypothyroidism, unspecified"
 Hypothyroidism,E03.9+G13.2*,"Hypothyroidism, unspecified/Systemic atrophy primarily affecting central nervous system in myxoedema (E00.1+, E03.-+)"
 Hypothyroidism,E89.0,Postprocedural hypothyroidism
-Chronic Obstructive Pulmonary Disease,J43.0,MacLeod's syndrome
-Chronic Obstructive Pulmonary Disease,J43.1,Panlobular emphysema
-Chronic Obstructive Pulmonary Disease,J43.2,Centrilobular emphysema
-Chronic Obstructive Pulmonary Disease,J43.8,Other emphysema
-Chronic Obstructive Pulmonary Disease,J43.9,"Emphysema, unspecified"
-Chronic Obstructive Pulmonary Disease,J44.0,Chronic obstructive pulmonary disease with acute lower respiratory infection
-Chronic Obstructive Pulmonary Disease,J44.1,"Chronic obstructive pulmonary disease with acute exacerbation, unspecified"
-Chronic Obstructive Pulmonary Disease,J44.8,Other specified chronic obstructive pulmonary disease
-Chronic Obstructive Pulmonary Disease,J44.9,"Chronic obstructive pulmonary disease, unspecified"
+Chronic obstructive pulmonary disease (COPD),J43.0,MacLeod's syndrome
+Chronic obstructive pulmonary disease (COPD),J43.1,Panlobular emphysema
+Chronic obstructive pulmonary disease (COPD),J43.2,Centrilobular emphysema
+Chronic obstructive pulmonary disease (COPD),J43.8,Other emphysema
+Chronic obstructive pulmonary disease (COPD),J43.9,"Emphysema, unspecified"
+Chronic obstructive pulmonary disease (COPD),J44.0,Chronic obstructive pulmonary disease with acute lower respiratory infection
+Chronic obstructive pulmonary disease (COPD),J44.1,"Chronic obstructive pulmonary disease with acute exacerbation, unspecified"
+Chronic obstructive pulmonary disease (COPD),J44.8,Other specified chronic obstructive pulmonary disease
+Chronic obstructive pulmonary disease (COPD),J44.9,"Chronic obstructive pulmonary disease, unspecified"
