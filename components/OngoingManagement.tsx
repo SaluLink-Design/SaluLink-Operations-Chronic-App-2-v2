@@ -33,7 +33,7 @@ const OngoingManagement = ({
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
   
   useEffect(() => {
-    const items = DataService.getTreatmentBasketForCondition(condition);
+    const items = DataService.getOngoingBasketForCondition(condition);
     setBasketItems(items);
   }, [condition]);
   

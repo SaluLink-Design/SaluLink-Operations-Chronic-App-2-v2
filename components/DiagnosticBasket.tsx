@@ -25,7 +25,7 @@ const DiagnosticBasket = ({
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
   
   useEffect(() => {
-    const items = DataService.getTreatmentBasketForCondition(condition);
+    const items = DataService.getDiagnosticBasketForCondition(condition);
     setBasketItems(items);
   }, [condition]);
   

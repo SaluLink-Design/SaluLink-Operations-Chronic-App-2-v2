@@ -146,10 +146,8 @@ const MedicationReport = ({
               condition={condition}
               selectedPlan={selectedPlan}
               medications={newMedications}
-              medicationNote=""
               onAddMedication={handleAddNewMedication}
               onRemoveMedication={handleRemoveNewMedication}
-              onSetMedicationNote={() => {}}
               onSetPlan={() => {}}
               excludedMedications={currentMedications}
             />

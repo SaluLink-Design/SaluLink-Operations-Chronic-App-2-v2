@@ -181,6 +181,60 @@ export class DataService {
     );
   }
 
+  static getDiagnosticBasketForCondition(condition: string): TreatmentBasketItem[] {
+    const items = this.treatmentBasket.filter(t =>
+      t.condition.toLowerCase() === condition.toLowerCase()
+    );
+
+    const uniqueItems = new Map<string, TreatmentBasketItem>();
+
+    items.forEach(item => {
+      const description = item.diagnosticBasket.description.trim();
+      const code = item.diagnosticBasket.code.trim();
+
+      if (description && code) {
+        const key = `${description}|${code}`;
+
+        if (!uniqueItems.has(key)) {
+          uniqueItems.set(key, item);
+        }
+      }
+    });
+
+    return Array.from(uniqueItems.values());
+  }
+
+  static getOngoingBasketForCondition(condition: string): TreatmentBasketItem[] {
+    const items = this.treatmentBasket.filter(t =>
+      t.condition.toLowerCase() === condition.toLowerCase()
+    );
+
+    const uniqueItems = new Map<string, TreatmentBasketItem>();
+
+    items.forEach(item => {
+      const description = item.ongoingManagementBasket.description.trim();
+      const code = item.ongoingManagementBasket.code.trim();
+
+      if (description && code) {
+        const key = `${description}|${code}`;
+
+        if (!uniqueItems.has(key)) {
+          uniqueItems.set(key, item);
+        } else {
+          const existing = uniqueItems.get(key);
+          const existingCovered = parseInt(existing?.ongoingManagementBasket.covered || '0');
+          const currentCovered = parseInt(item.ongoingManagementBasket.covered || '0');
+
+          if (currentCovered > existingCovered) {
+            uniqueItems.set(key, item);
+          }
+        }
+      }
+    });
+
+    return Array.from(uniqueItems.values());
+  }
+
   static getTreatmentBasketForCondition(condition: string): TreatmentBasketItem[] {
     const items = this.treatmentBasket.filter(t =>
       t.condition.toLowerCase() === condition.toLowerCase()
