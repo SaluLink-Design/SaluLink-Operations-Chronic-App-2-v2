@@ -82,8 +82,11 @@ export class DataService {
     if (this.initialized) return;
 
     try {
+      // Add cache busting timestamp to force fresh CSV loads
+      const cacheBuster = `?v=${Date.now()}`;
+      
       // Load Chronic Conditions
-      const chronicResponse = await fetch('/Chronic Conditions.csv');
+      const chronicResponse = await fetch(`/Chronic Conditions.csv${cacheBuster}`);
       const chronicText = await chronicResponse.text();
       const chronicParsed = Papa.parse<any>(chronicText, { header: true });
       
@@ -96,7 +99,7 @@ export class DataService {
         }));
 
       // Load Medicine List
-      const medicineResponse = await fetch('/Medicine List.csv');
+      const medicineResponse = await fetch(`/Medicine List.csv${cacheBuster}`);
       const medicineText = await medicineResponse.text();
       const medicineParsed = Papa.parse<any>(medicineText, { header: true });
       
@@ -116,7 +119,7 @@ export class DataService {
         });
 
       // Load Treatment Basket
-      const basketResponse = await fetch('/Treatment Basket.csv');
+      const basketResponse = await fetch(`/Treatment Basket.csv${cacheBuster}`);
       const basketText = await basketResponse.text();
       const basketParsed = Papa.parse<any>(basketText, { header: true, skipEmptyLines: true });
       
