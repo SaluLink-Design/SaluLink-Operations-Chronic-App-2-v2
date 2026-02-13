@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Pill, Check, X, AlertTriangle } from 'lucide-react';
-import { MedicineItem, SelectedMedication, MedicalPlan } from '@/types';
+import React, { useState, useEffect } from 'react';
+import { Pill, Check, X, AlertTriangle, Search } from 'lucide-react';
+import type { MedicineItem, SelectedMedication, MedicalPlan } from '@/types';
 import { DataService } from '@/lib/dataService';
 
 interface MedicationSelectionProps {
@@ -27,6 +27,7 @@ const MedicationSelection = ({
   const [availableMedications, setAvailableMedications] = useState<MedicineItem[]>([]);
   const [medicineClasses, setMedicineClasses] = useState<string[]>([]);
   const [selectedClass, setSelectedClass] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState<string>('');
 
   const plans: MedicalPlan[] = ['Core', 'Priority', 'Saver', 'Executive', 'Comprehensive'];
 
@@ -77,9 +78,18 @@ const MedicationSelection = ({
     setMedicineClasses(filteredClasses);
   }, [condition]);
 
-  const filteredMedications = selectedClass
-    ? availableMedications.filter(m => m.medicineClass === selectedClass)
-    : availableMedications;
+  const filteredMedications = availableMedications.filter(medicine => {
+    // Filter by medicine class if selected
+    const matchesClass = !selectedClass || medicine.medicineClass === selectedClass;
+    
+    // Filter by search term if provided
+    const matchesSearch = !searchTerm || 
+      medicine.medicineNameAndStrength?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      medicine.activeIngredient?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      medicine.medicineClass?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    return matchesClass && matchesSearch;
+  });
 
   const getCdaForPlan = (medicine: MedicineItem): string => {
     if (['Core', 'Priority', 'Saver'].includes(selectedPlan)) {
@@ -206,6 +216,29 @@ const MedicationSelection = ({
           </div>
         </div>
 
+        {/* Search Bar */}
+        <div className="mb-4">
+          <label className="label">Search Medications</label>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              className="input-field pl-10"
+              placeholder="Search by medication name, active ingredient, or class..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            )}
+          </div>
+        </div>
+
         {/* Medicine Class Filter */}
         <div className="mb-4">
           <label className="label">Filter by Medicine Class</label>
@@ -220,6 +253,31 @@ const MedicationSelection = ({
             ))}
           </select>
         </div>
+
+        {/* Search Results Summary */}
+        {(searchTerm || selectedClass) && (
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center gap-2">
+              <Search className="w-5 h-5 text-blue-600" />
+              <p className="text-sm text-blue-900">
+                <strong>{filteredMedications.length}</strong> medication{filteredMedications.length !== 1 ? 's' : ''} found
+                {searchTerm && <span> matching "<strong>{searchTerm}</strong>"</span>}
+                {selectedClass && <span> in <strong>{selectedClass}</strong></span>}
+              </p>
+              {(searchTerm || selectedClass) && (
+                <button
+                  onClick={() => {
+                    setSearchTerm('');
+                    setSelectedClass(null);
+                  }}
+                  className="ml-auto text-sm text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  Clear filters
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Plan Coverage Summary */}
         {(() => {
@@ -252,6 +310,29 @@ const MedicationSelection = ({
 
         {/* Medicine List */}
         <div className="space-y-2 max-h-[500px] overflow-y-auto">
+          {filteredMedications.length === 0 && (
+            <div className="text-center py-12">
+              <Search className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-600 font-medium mb-2">No medications found</p>
+              <p className="text-sm text-gray-500">
+                {searchTerm || selectedClass 
+                  ? 'Try adjusting your search or filter criteria'
+                  : 'No medications available for this condition'
+                }
+              </p>
+              {(searchTerm || selectedClass) && (
+                <button
+                  onClick={() => {
+                    setSearchTerm('');
+                    setSelectedClass(null);
+                  }}
+                  className="mt-4 text-primary-600 hover:text-primary-700 font-medium text-sm"
+                >
+                  Clear all filters
+                </button>
+              )}
+            </div>
+          )}
           {filteredMedications.map((medicine, index) => {
             const isSelected = medications.some(
               m => m.medicineNameAndStrength === medicine.medicineNameAndStrength
