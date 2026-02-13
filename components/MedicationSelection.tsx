@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Pill, Check, X, AlertTriangle, Search } from 'lucide-react';
-import type { MedicineItem, SelectedMedication, MedicalPlan } from '@/types';
+import { MedicineItem, SelectedMedication, MedicalPlan } from '@/types';
 import { DataService } from '@/lib/dataService';
 
 interface MedicationSelectionProps {
@@ -232,6 +232,7 @@ const MedicationSelection = ({
               <button
                 onClick={() => setSearchTerm('')}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                aria-label="Clear search"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -241,8 +242,9 @@ const MedicationSelection = ({
 
         {/* Medicine Class Filter */}
         <div className="mb-4">
-          <label className="label">Filter by Medicine Class</label>
+          <label htmlFor="medicine-class-filter" className="label">Filter by Medicine Class</label>
           <select
+            id="medicine-class-filter"
             className="input-field"
             value={selectedClass || ''}
             onChange={(e) => setSelectedClass(e.target.value || null)}
@@ -452,6 +454,7 @@ const MedicationSelection = ({
                   <button
                     onClick={() => onRemoveMedication(index)}
                     className="text-red-600 hover:text-red-700 p-2"
+                    aria-label={`Remove ${med.medicineNameAndStrength}`}
                   >
                     <X className="w-5 h-5" />
                   </button>
