@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Pill, Check, X, AlertTriangle, Search } from 'lucide-react';
+import { Pill, Check, X, TriangleAlert as AlertTriangle, Search } from 'lucide-react';
 import { MedicineItem, SelectedMedication, MedicalPlan } from '@/types';
 import { DataService } from '@/lib/dataService';
 
@@ -78,16 +78,23 @@ const MedicationSelection = ({
     setMedicineClasses(filteredClasses);
   }, [condition]);
 
+  const getClassStats = (className: string) => {
+    const classItems = availableMedications.filter(m => m.medicineClass === className);
+    const covered = classItems.filter(m => DataService.isMedicationAllowedForPlan(m, selectedPlan));
+    const notCovered = classItems.length - covered.length;
+    return { total: classItems.length, covered: covered.length, notCovered };
+  };
+
   const filteredMedications = availableMedications.filter(medicine => {
     // Filter by medicine class if selected
     const matchesClass = !selectedClass || medicine.medicineClass === selectedClass;
-    
+
     // Filter by search term if provided
-    const matchesSearch = !searchTerm || 
+    const matchesSearch = !searchTerm ||
       medicine.medicineNameAndStrength?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       medicine.activeIngredient?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       medicine.medicineClass?.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     return matchesClass && matchesSearch;
   });
 
@@ -240,75 +247,125 @@ const MedicationSelection = ({
           </div>
         </div>
 
-        {/* Medicine Class Filter */}
-        <div className="mb-4">
-          <label htmlFor="medicine-class-filter" className="label">Filter by Medicine Class</label>
-          <select
-            id="medicine-class-filter"
-            className="input-field"
-            value={selectedClass || ''}
-            onChange={(e) => setSelectedClass(e.target.value || null)}
-          >
-            <option value="">All Classes</option>
-            {medicineClasses.map(cls => (
-              <option key={cls} value={cls}>{cls}</option>
-            ))}
-          </select>
+        {/* Medicine Class Filter - Box Layout */}
+        <div className="mb-6">
+          <label className="label">Filter by Medicine Class</label>
+          <div className="grid grid-cols-1 gap-3">
+            {/* All Classes Button */}
+            <button
+              onClick={() => setSelectedClass(null)}
+              className={`p-4 rounded-lg border-2 transition-all text-left ${
+                selectedClass === null
+                  ? 'border-primary-500 bg-primary-50'
+                  : 'border-gray-200 hover:border-primary-300 bg-white'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-semibold text-gray-900">All Classes</h4>
+                  <p className="text-sm text-gray-600">{availableMedications.length} total medications</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-medium text-gray-700">
+                    {availableMedications.filter(m => DataService.isMedicationAllowedForPlan(m, selectedPlan)).length} available
+                  </p>
+                </div>
+              </div>
+            </button>
+
+            {/* Individual Class Buttons */}
+            {medicineClasses.map(cls => {
+              const stats = getClassStats(cls);
+              const isSelected = selectedClass === cls;
+              const coveragePercent = stats.total > 0 ? Math.round((stats.covered / stats.total) * 100) : 0;
+
+              return (
+                <button
+                  key={cls}
+                  onClick={() => setSelectedClass(isSelected ? null : cls)}
+                  className={`p-4 rounded-lg border-2 transition-all text-left ${
+                    isSelected
+                      ? 'border-primary-500 bg-primary-50'
+                      : 'border-gray-200 hover:border-primary-300 bg-white'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-semibold text-gray-900 break-words">{cls}</h4>
+                      <div className="mt-2 space-y-1">
+                        <p className="text-sm text-gray-600">
+                          <span className="font-medium text-green-700">{stats.covered}</span>
+                          <span className="text-gray-500"> available</span>
+                        </p>
+                        {stats.notCovered > 0 && (
+                          <p className="text-sm">
+                            <span className="font-medium text-orange-600">{stats.notCovered}</span>
+                            <span className="text-gray-500"> not covered by {selectedPlan}</span>
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <div className="inline-flex flex-col items-end">
+                        <p className="text-lg font-bold text-gray-900">{coveragePercent}%</p>
+                        <p className="text-xs text-gray-500">covered</p>
+                      </div>
+                    </div>
+                  </div>
+                  {stats.notCovered > 0 && (
+                    <div className="mt-3 pt-3 border-t border-gray-200">
+                      <div className="w-full bg-gray-200 rounded-full h-1.5">
+                        <div
+                          className="bg-green-500 h-1.5 rounded-full"
+                          style={{ width: `${coveragePercent}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Search Results Summary */}
-        {(searchTerm || selectedClass) && (
+        {selectedClass && (
           <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <div className="flex items-center gap-2">
-              <Search className="w-5 h-5 text-blue-600" />
-              <p className="text-sm text-blue-900">
-                <strong>{filteredMedications.length}</strong> medication{filteredMedications.length !== 1 ? 's' : ''} found
-                {searchTerm && <span> matching "<strong>{searchTerm}</strong>"</span>}
-                {selectedClass && <span> in <strong>{selectedClass}</strong></span>}
-              </p>
-              {(searchTerm || selectedClass) && (
-                <button
-                  onClick={() => {
-                    setSearchTerm('');
-                    setSelectedClass(null);
-                  }}
-                  className="ml-auto text-sm text-blue-600 hover:text-blue-800 font-medium"
-                >
-                  Clear filters
-                </button>
-              )}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <p className="text-sm text-blue-900">
+                  <strong>{filteredMedications.length}</strong> medication{filteredMedications.length !== 1 ? 's' : ''} in <strong>{selectedClass}</strong>
+                </p>
+              </div>
+              <button
+                onClick={() => setSelectedClass(null)}
+                className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+              >
+                Clear class filter
+              </button>
             </div>
           </div>
         )}
 
-        {/* Plan Coverage Summary */}
-        {(() => {
-          const restrictedCount = filteredMedications.filter(
-            m => !DataService.isMedicationAllowedForPlan(m, selectedPlan)
-          ).length;
-          const totalCount = filteredMedications.length;
-          const availableCount = totalCount - restrictedCount;
-
-          if (restrictedCount > 0) {
-            return (
-              <div className="mb-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                <div className="flex items-start gap-2">
-                  <AlertTriangle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-orange-900">
-                      Plan Coverage Notice
-                    </p>
-                    <p className="text-xs text-orange-700 mt-1">
-                      <strong>{restrictedCount}</strong> of <strong>{totalCount}</strong> medications are not covered by the <strong>{selectedPlan}</strong> plan.
-                      {' '}<strong>{availableCount}</strong> medications are available for selection.
-                    </p>
-                  </div>
-                </div>
+        {searchTerm && (
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Search className="w-5 h-5 text-blue-600" />
+                <p className="text-sm text-blue-900">
+                  <strong>{filteredMedications.length}</strong> medication{filteredMedications.length !== 1 ? 's' : ''} matching "<strong>{searchTerm}</strong>"
+                </p>
               </div>
-            );
-          }
-          return null;
-        })()}
+              <button
+                onClick={() => setSearchTerm('')}
+                className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+              >
+                Clear search
+              </button>
+            </div>
+          </div>
+        )}
+
 
         {/* Medicine List */}
         <div className="space-y-2 max-h-[500px] overflow-y-auto">
