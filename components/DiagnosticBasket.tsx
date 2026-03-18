@@ -65,15 +65,15 @@ const DiagnosticBasket = ({
   return (
     <div className="card">
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-          <FileText className="w-6 h-6 text-green-600" />
+        <div className="w-10 h-10 bg-accent-100 rounded-lg flex items-center justify-center">
+          <FileText className="w-6 h-6 text-accent-600" />
         </div>
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Diagnostic Basket</h2>
           <p className="text-sm text-gray-500">Select and document required diagnostic tests</p>
         </div>
         {treatments.length > 0 && (
-          <span className="ml-auto inline-flex items-center gap-1 text-sm font-medium text-green-700 bg-green-100 px-2.5 py-0.5 rounded-full">
+          <span className="ml-auto inline-flex items-center gap-1 text-sm font-medium text-accent-700 bg-accent-100 px-2.5 py-0.5 rounded-full">
             <Check className="w-3.5 h-3.5" />
             {treatments.length} selected
           </span>
@@ -98,8 +98,8 @@ const DiagnosticBasket = ({
                 key={idx}
                 className={`rounded-xl border-2 transition-all duration-200 ${
                   isSelected
-                    ? 'border-green-400 bg-green-50 shadow-sm'
-                    : 'border-gray-200 bg-white hover:border-green-300 hover:shadow-sm'
+                    ? 'border-accent-400 bg-accent-50 shadow-sm'
+                    : 'border-gray-200 bg-white hover:border-accent-300 hover:shadow-sm'
                 }`}
               >
                 {/* Card Header */}
@@ -115,7 +115,7 @@ const DiagnosticBasket = ({
                           {item.diagnosticBasket.description}
                         </h4>
                         {isSelected && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded font-medium">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-accent-100 text-accent-700 text-xs rounded font-medium">
                             <Check className="w-3 h-3" /> Selected
                           </span>
                         )}
@@ -146,7 +146,7 @@ const DiagnosticBasket = ({
                           >
                             <X className="w-4 h-4" />
                           </button>
-                          <div className="w-6 h-6 bg-green-600 rounded-full flex items-center justify-center">
+                          <div className="w-6 h-6 bg-accent-600 rounded-full flex items-center justify-center">
                             <Check className="w-3.5 h-3.5 text-white" />
                           </div>
                           {isExpanded ? (
@@ -166,7 +166,7 @@ const DiagnosticBasket = ({
                 {isSelected && !isExpanded && treatment && (
                   <button
                     type="button"
-                    className="w-full px-4 pb-3 text-left border-t border-green-200"
+                    className="w-full px-4 pb-3 text-left border-t border-accent-200"
                     onClick={() => setExpandedDiagnostic(item.diagnosticBasket.description)}
                   >
                     <p className="pt-2.5 text-sm text-gray-500 italic">
@@ -182,7 +182,7 @@ const DiagnosticBasket = ({
                 {/* Expanded Documentation Form */}
                 {isSelected && isExpanded && treatment && (
                   <div
-                    className="px-4 pb-5 border-t border-green-200"
+                    className="px-4 pb-5 border-t border-accent-200"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <div className="pt-4 space-y-5">
@@ -227,7 +227,7 @@ const DiagnosticBasket = ({
                             <span className="font-semibold text-gray-700">{treatment.maxCovered}</span>{' '}
                             covered
                             {treatment.timesCompleted === treatment.maxCovered && (
-                              <span className="ml-2 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
+                              <span className="ml-2 text-xs bg-accent-100 text-accent-700 px-2 py-0.5 rounded">
                                 Max reached
                               </span>
                             )}
@@ -252,7 +252,7 @@ const DiagnosticBasket = ({
                               },
                             })
                           }
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent resize-none bg-white"
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent-400 focus:border-transparent resize-none bg-white"
                         />
                       </div>
 

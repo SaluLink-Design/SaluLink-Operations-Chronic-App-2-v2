@@ -646,7 +646,7 @@ export default function Home() {
                       <div
                         className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
                           store.currentStep > step.id
-                            ? 'bg-green-500 text-white'
+                            ? 'bg-accent-600 text-white'
                             : store.currentStep === step.id
                             ? 'bg-primary-400 text-brand-black'
                             : 'bg-gray-200 text-gray-600'
@@ -673,13 +673,13 @@ export default function Home() {
                       <div className="relative flex-1 mx-4 flex items-center">
                         <div
                           className={`h-1 w-full ${
-                            store.currentStep > step.id ? 'bg-green-500' : 'bg-gray-200'
+                            store.currentStep > step.id ? 'bg-accent-500' : 'bg-gray-200'
                           }`}
                         />
                         {store.currentStep === step.id + 1 && (
                           <div className="absolute inset-0 flex items-center">
                             <ChevronRight
-                              className="w-6 h-6 text-green-500 animate-slide-arrow"
+                              className="w-6 h-6 text-accent-500 animate-slide-arrow"
                               style={{ animation: 'slideArrow 0.8s ease-out' }}
                             />
                           </div>
