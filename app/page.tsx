@@ -577,17 +577,69 @@ export default function Home() {
 
   if (!isInitialized) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Loading SaluLink Chronic App...</p>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#07091a' }}>
+        {/* Background glows */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="glow-dot-blue w-96 h-96 -top-20 -left-20 animate-glow-pulse" />
+          <div className="glow-dot-purple w-80 h-80 bottom-10 right-10 animate-pulse-slow" />
+        </div>
+        <div className="text-center relative z-10">
+          <div className="relative w-20 h-20 mx-auto mb-6">
+            <img
+              src="/salulink-orb.png"
+              alt="SaluLink"
+              className="w-20 h-20 object-contain animate-float"
+            />
+            <div
+              className="absolute inset-0 rounded-full animate-spin-slow"
+              style={{
+                background: 'conic-gradient(from 0deg, #38b6ff44, #7c3aed44, transparent)',
+                filter: 'blur(8px)',
+              }}
+            />
+          </div>
+          <h2
+            className="text-xl font-bold mb-2 text-gradient"
+            style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+          >
+            SaluLink
+          </h2>
+          <p className="text-sm" style={{ color: '#94a3b8' }}>
+            Initialising Chronic Treatment App…
+          </p>
+          <div className="flex items-center justify-center gap-1.5 mt-4">
+            {[0, 1, 2].map(i => (
+              <div
+                key={i}
+                className="w-2 h-2 rounded-full animate-bounce"
+                style={{
+                  background: '#38b6ff',
+                  animationDelay: `${i * 0.15}s`,
+                  opacity: 0.8,
+                }}
+              />
+            ))}
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ background: '#07091a' }}>
+      {/* Global background glows */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="glow-dot-blue w-[500px] h-[500px] -top-32 -left-32 animate-glow-pulse" style={{ opacity: 0.6 }} />
+        <div className="glow-dot-purple w-[400px] h-[400px] top-1/3 -right-20 animate-pulse-slow" style={{ opacity: 0.5 }} />
+        <div
+          className="absolute bottom-0 left-1/3 w-[600px] h-[300px]"
+          style={{
+            background: 'radial-gradient(ellipse, rgba(56,182,255,0.04) 0%, transparent 70%)',
+            filter: 'blur(40px)',
+          }}
+        />
+      </div>
+
       {showAllCases && (
         <AllCasesView
           cases={store.cases}
@@ -597,27 +649,67 @@ export default function Home() {
         />
       )}
 
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
+      {/* ── Header ─────────────────────────────────────────────────────────── */}
+      <header
+        className="sticky top-0 z-30"
+        style={{
+          background: 'rgba(7,9,26,0.85)',
+          borderBottom: '1px solid rgba(30,39,72,0.8)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+        }}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
+            {/* Logo + wordmark */}
             <div className="flex items-center gap-3">
+              <div className="relative">
+                <img
+                  src="/salulink-orb.png"
+                  alt="SaluLink orb"
+                  className="h-9 w-9 object-contain"
+                  style={{ filter: 'drop-shadow(0 0 8px rgba(56,182,255,0.5))' }}
+                />
+              </div>
               <img
                 src="/3.svg"
-                alt="SaluLink Logo"
-                className="h-16 w-auto"
+                alt="SaluLink"
+                className="h-7 w-auto"
+                style={{ filter: 'brightness(0) invert(1) opacity(0.95)' }}
               />
-              <div>
-                <p className="text-xs text-gray-500">Chronic Treatment App</p>
-              </div>
+              <div
+                className="hidden sm:block h-5 w-px mx-1"
+                style={{ background: 'rgba(30,39,72,0.9)' }}
+              />
+              <span
+                className="hidden sm:block text-xs font-medium tracking-wide"
+                style={{ color: '#475569' }}
+              >
+                Chronic Treatment App
+              </span>
             </div>
-            
-            <div className="flex items-center gap-3">
+
+            {/* Right actions */}
+            <div className="flex items-center gap-2">
+              <div
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium"
+                style={{
+                  background: 'rgba(16,217,160,0.1)',
+                  border: '1px solid rgba(16,217,160,0.2)',
+                  color: '#6ee7b7',
+                }}
+              >
+                <span
+                  className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"
+                />
+                PMB Compliant
+              </div>
               <button
                 onClick={store.toggleSidebar}
-                className="p-2 hover:bg-gray-100 rounded-lg"
+                className="btn-ghost p-2"
+                title="Patient Cases"
               >
-                <Menu className="w-6 h-6" />
+                <Menu className="w-5 h-5" style={{ color: '#94a3b8' }} />
               </button>
             </div>
           </div>
@@ -633,54 +725,71 @@ export default function Home() {
         onViewAll={() => setShowAllCases(true)}
       />
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* ── Main Content ───────────────────────────────────────────────────── */}
+      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {currentWorkflow === 'new' && (
           <>
-            {/* Progress Steps */}
-            <div className="mb-8 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            {/* ── Progress Steps ──────────────────────────────────────────── */}
+            <div
+              className="mb-8 rounded-2xl p-5"
+              style={{
+                background: 'rgba(13,16,37,0.7)',
+                border: '1px solid rgba(30,39,72,0.9)',
+                backdropFilter: 'blur(12px)',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.4), 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04)',
+              }}
+            >
               <div className="flex items-center justify-between">
                 {steps.map((step, index) => (
                   <div key={step.id} className="flex items-center flex-1">
                     <div className="flex flex-col items-center w-full">
                       <div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
+                        className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 ${
                           store.currentStep > step.id
-                            ? 'bg-green-500 text-white'
+                            ? 'step-completed'
                             : store.currentStep === step.id
-                            ? 'bg-primary-600 text-white'
-                            : 'bg-gray-200 text-gray-600'
+                            ? 'step-active'
+                            : 'step-pending'
                         }`}
                       >
                         {store.currentStep > step.id ? (
-                          <CheckCircle className="w-6 h-6" />
+                          <CheckCircle className="w-5 h-5" />
                         ) : (
                           step.id + 1
                         )}
                       </div>
-                      <span className={`mt-2 text-sm font-medium text-center ${
-                        store.currentStep >= step.id ? 'text-gray-900' : 'text-gray-500'
-                      }`}>
+                      <span
+                        className="mt-2 text-xs font-semibold text-center leading-tight"
+                        style={{
+                          color: store.currentStep >= step.id ? '#f1f5f9' : '#475569',
+                        }}
+                      >
                         {step.title}
                         {step.id === 4 && store.currentStep === 4 && (
-                          <span className="block text-xs text-primary-600 mt-0.5">
-                            {store.medicationSubstep === 1 ? '(Selection)' : '(Registration Note)'}
+                          <span className="block text-xs mt-0.5" style={{ color: '#38b6ff' }}>
+                            {store.medicationSubstep === 1 ? '(Selection)' : '(Reg. Note)'}
                           </span>
                         )}
                       </span>
                     </div>
                     {index < steps.length - 1 && (
-                      <div className="relative flex-1 mx-4 flex items-center">
+                      <div className="relative flex-1 mx-2 flex items-center">
                         <div
-                          className={`h-1 w-full ${
-                            store.currentStep > step.id ? 'bg-green-500' : 'bg-gray-200'
-                          }`}
+                          className="h-0.5 w-full rounded-full transition-all duration-500"
+                          style={{
+                            background: store.currentStep > step.id
+                              ? 'linear-gradient(90deg, #10d9a0, #38b6ff)'
+                              : 'rgba(30,39,72,0.8)',
+                            boxShadow: store.currentStep > step.id
+                              ? '0 0 8px rgba(56,182,255,0.3)'
+                              : 'none',
+                          }}
                         />
                         {store.currentStep === step.id + 1 && (
                           <div className="absolute inset-0 flex items-center">
                             <ChevronRight
-                              className="w-6 h-6 text-green-500 animate-slide-arrow"
-                              style={{ animation: 'slideArrow 0.8s ease-out' }}
+                              className="w-5 h-5 animate-slide-arrow"
+                              style={{ color: '#10d9a0', animation: 'slideArrow 0.8s ease-out' }}
                             />
                           </div>
                         )}
@@ -785,14 +894,14 @@ export default function Home() {
                 </>
               )}
 
-              {/* Navigation Buttons */}
+              {/* ── Navigation Buttons ────────────────────────────────────── */}
               {store.currentStep > 0 && store.currentStep < 5 && (
-                <div className="flex justify-between">
+                <div className="flex justify-between pt-2">
                   <button
                     onClick={handlePreviousStep}
                     className="btn-secondary flex items-center gap-2"
                   >
-                    <ArrowLeft className="w-5 h-5" />
+                    <ArrowLeft className="w-4 h-4" />
                     {store.currentStep === 4 && store.medicationSubstep === 2 ? 'Back to Medications' : 'Previous'}
                   </button>
                   <button
@@ -804,19 +913,19 @@ export default function Home() {
                       : store.currentStep === 4 && store.medicationSubstep === 2
                       ? 'Continue to Final Claim'
                       : 'Next'}
-                    <ArrowRight className="w-5 h-5" />
+                    <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>
               )}
 
               {store.currentStep === 0 && matchedConditions.length > 0 && (
-                <div className="flex justify-end">
+                <div className="flex justify-end pt-2">
                   <button
                     onClick={handleNextStep}
                     className="btn-primary flex items-center gap-2"
                   >
                     Next
-                    <ArrowRight className="w-5 h-5" />
+                    <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>
               )}
@@ -830,7 +939,7 @@ export default function Home() {
               onClick={() => setCurrentWorkflow('new')}
               className="btn-secondary flex items-center gap-2 mb-6"
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="w-4 h-4" />
               Back to Case
             </button>
             <OngoingManagement
@@ -856,7 +965,7 @@ export default function Home() {
               onClick={() => setCurrentWorkflow('new')}
               className="btn-secondary flex items-center gap-2 mb-6"
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="w-4 h-4" />
               Back to Case
             </button>
             <MedicationReport
@@ -876,7 +985,7 @@ export default function Home() {
               onClick={() => setCurrentWorkflow('new')}
               className="btn-secondary flex items-center gap-2 mb-6"
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="w-4 h-4" />
               Back to Case
             </button>
             {(() => {
@@ -893,22 +1002,41 @@ export default function Home() {
         )}
       </main>
 
-      {/* Save Modal */}
+      {/* ── Save Modal ─────────────────────────────────────────────────────── */}
       {showSaveModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
-            <h3 className="text-xl font-bold mb-2">Finalize Patient Case</h3>
-            <p className="text-sm text-gray-600 mb-6">
-              Enter patient details to save the case. You can choose to save only or export documents.
-            </p>
+        <div className="modal-overlay">
+          <div className="modal-panel">
+            {/* Modal header */}
+            <div className="flex items-center gap-3 mb-5">
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ background: 'rgba(56,182,255,0.15)', border: '1px solid rgba(56,182,255,0.25)' }}
+              >
+                <Save className="w-5 h-5" style={{ color: '#38b6ff' }} />
+              </div>
+              <div>
+                <h3
+                  className="text-lg font-bold"
+                  style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', color: '#f1f5f9' }}
+                >
+                  Finalise Patient Case
+                </h3>
+                <p className="text-xs" style={{ color: '#94a3b8' }}>
+                  Enter patient details to save or export
+                </p>
+              </div>
+            </div>
+
+            <div className="divider" />
+
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Patient Name <span className="text-red-500">*</span>
+                <label className="label">
+                  Patient Name <span style={{ color: '#f43f5e' }}>*</span>
                 </label>
                 <input
                   type="text"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  className="input-field"
                   placeholder="Enter patient name"
                   value={patientName}
                   onChange={(e) => setPatientName(e.target.value)}
@@ -916,79 +1044,97 @@ export default function Home() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Patient ID / Medical Record Number <span className="text-red-500">*</span>
+                <label className="label">
+                  Patient ID / MRN <span style={{ color: '#f43f5e' }}>*</span>
                 </label>
                 <input
                   type="text"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                  placeholder="Enter patient ID or MRN"
+                  className="input-field"
+                  placeholder="Enter patient ID or medical record number"
                   value={patientId}
                   onChange={(e) => setPatientId(e.target.value)}
                   disabled={isSaving}
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Patient Email (Optional)
-                </label>
-                <input
-                  type="email"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                  placeholder="patient@example.com"
-                  value={patientEmail}
-                  onChange={(e) => setPatientEmail(e.target.value)}
-                  disabled={isSaving}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Patient Phone (Optional)
-                </label>
-                <input
-                  type="tel"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                  placeholder="+27 XX XXX XXXX"
-                  value={patientPhone}
-                  onChange={(e) => setPatientPhone(e.target.value)}
-                  disabled={isSaving}
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="label">Email (Optional)</label>
+                  <input
+                    type="email"
+                    className="input-field"
+                    placeholder="patient@example.com"
+                    value={patientEmail}
+                    onChange={(e) => setPatientEmail(e.target.value)}
+                    disabled={isSaving}
+                  />
+                </div>
+                <div>
+                  <label className="label">Phone (Optional)</label>
+                  <input
+                    type="tel"
+                    className="input-field"
+                    placeholder="+27 XX XXX XXXX"
+                    value={patientPhone}
+                    onChange={(e) => setPatientPhone(e.target.value)}
+                    disabled={isSaving}
+                  />
+                </div>
               </div>
             </div>
 
-            <div className="mt-6 pt-4 border-t border-gray-200">
-              <p className="text-sm font-medium text-gray-700 mb-3">Save Options:</p>
-              <div className="space-y-2">
-                <button
-                  onClick={handleSaveCaseOnly}
-                  disabled={isSaving}
-                  className="w-full py-3 px-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Save className="w-5 h-5" />
-                  {isSaving ? 'Saving...' : 'Save Patient Case'}
-                </button>
-                <p className="text-xs text-gray-500 text-center mb-3">or export documents</p>
-                <button
-                  onClick={() => handleSaveCase(false)}
-                  disabled={isSaving}
-                  className="w-full py-2.5 px-4 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Export as PDF
-                </button>
-                <button
-                  onClick={() => handleSaveCase(true)}
-                  disabled={isSaving}
-                  className="w-full py-2.5 px-4 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Export with Attachments (ZIP)
-                </button>
+            <div className="divider" />
+
+            <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: '#94a3b8' }}>
+              Save Options
+            </p>
+            <div className="space-y-2">
+              <button
+                onClick={handleSaveCaseOnly}
+                disabled={isSaving}
+                className="w-full py-3 px-4 font-semibold rounded-xl flex items-center justify-center gap-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{
+                  background: 'linear-gradient(135deg, #10d9a0, #38b6ff)',
+                  color: '#fff',
+                  boxShadow: isSaving ? 'none' : '0 0 20px rgba(16,217,160,0.3)',
+                }}
+              >
+                <Save className="w-4 h-4" />
+                {isSaving ? 'Saving…' : 'Save Patient Case'}
+              </button>
+
+              <div className="flex items-center gap-3 py-1">
+                <div className="divider flex-1 my-0" />
+                <span className="text-xs" style={{ color: '#475569' }}>or export</span>
+                <div className="divider flex-1 my-0" />
               </div>
+
+              <button
+                onClick={() => handleSaveCase(false)}
+                disabled={isSaving}
+                className="btn-primary w-full justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <FileDown className="w-4 h-4" />
+                Export as PDF
+              </button>
+              <button
+                onClick={() => handleSaveCase(true)}
+                disabled={isSaving}
+                className="w-full py-2.5 px-4 font-semibold rounded-xl flex items-center justify-center gap-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{
+                  background: 'rgba(124,58,237,0.15)',
+                  border: '1px solid rgba(124,58,237,0.3)',
+                  color: '#c4b5fd',
+                }}
+              >
+                <FileDown className="w-4 h-4" />
+                Export with Attachments (ZIP)
+              </button>
             </div>
 
             <button
               onClick={() => setShowSaveModal(false)}
               disabled={isSaving}
-              className="w-full mt-4 py-2 px-4 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-secondary w-full justify-center mt-3 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
