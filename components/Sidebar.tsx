@@ -19,7 +19,7 @@ const Sidebar = ({ isOpen, onClose, cases, onLoadCase, onDeleteCase, onViewAll }
       case 'completed':
         return 'bg-green-100 text-green-700';
       case 'ongoing':
-        return 'bg-primary-100 text-primary-700';
+        return 'bg-blue-100 text-blue-700';
       case 'diagnostic':
         return 'bg-yellow-100 text-yellow-700';
       default:
@@ -50,14 +50,13 @@ const Sidebar = ({ isOpen, onClose, cases, onLoadCase, onDeleteCase, onViewAll }
       
       {/* Sidebar */}
       <div
-        className={`fixed top-0 right-0 h-full w-96 shadow-2xl z-50 transform transition-transform duration-300 ${
+        className={`fixed top-0 right-0 h-full w-96 bg-white shadow-2xl z-50 transform transition-transform duration-300 ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
-        style={{ background: 'linear-gradient(180deg, #eff9ff 0%, #ffffff 30%)' }}
       >
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="p-6 border-b border-primary-100">
+          <div className="p-6 border-b border-gray-200">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="text-xl font-bold text-gray-900">Patient Cases</h2>
@@ -76,7 +75,7 @@ const Sidebar = ({ isOpen, onClose, cases, onLoadCase, onDeleteCase, onViewAll }
                 onViewAll();
                 onClose();
               }}
-              className="w-full px-4 py-3 bg-primary-400 text-white rounded-lg font-semibold hover:bg-primary-500 transition-colors flex items-center justify-center gap-2 shadow-sm"
+              className="w-full px-4 py-3 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 transition-colors flex items-center justify-center gap-2"
             >
               <LayoutGrid className="w-5 h-5" />
               View All Cases
@@ -95,7 +94,7 @@ const Sidebar = ({ isOpen, onClose, cases, onLoadCase, onDeleteCase, onViewAll }
                 {cases.map(patientCase => (
                   <div
                     key={patientCase.id}
-                    className="border border-primary-100 rounded-lg p-4 hover:border-primary-300 hover:bg-primary-50/40 transition-colors cursor-pointer bg-white/70"
+                    className="border border-gray-200 rounded-lg p-4 hover:border-primary-300 transition-colors cursor-pointer"
                     onClick={() => {
                       onLoadCase(patientCase.id);
                       onClose();
@@ -136,7 +135,7 @@ const Sidebar = ({ isOpen, onClose, cases, onLoadCase, onDeleteCase, onViewAll }
                           onLoadCase(patientCase.id);
                           onClose();
                         }}
-                        className="flex-1 px-3 py-2 bg-primary-50 text-primary-600 rounded text-sm font-medium hover:bg-primary-100 transition-colors"
+                        className="flex-1 px-3 py-2 bg-primary-50 text-primary-700 rounded text-sm font-medium hover:bg-primary-100 transition-colors"
                       >
                         Open
                       </button>
