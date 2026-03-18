@@ -730,6 +730,12 @@ export default function Home() {
                     const newTreatments = store.diagnosticTreatments.filter((_, i) => i !== index);
                     useStore.setState({ diagnosticTreatments: newTreatments });
                   }}
+                  ongoingTreatments={store.ongoingTreatments}
+                  onAddOngoingTreatment={store.addOngoingTreatment}
+                  onRemoveOngoingTreatment={(index) => {
+                    const newTreatments = store.ongoingTreatments.filter((_, i) => i !== index);
+                    useStore.setState({ ongoingTreatments: newTreatments });
+                  }}
                 />
               )}
 
