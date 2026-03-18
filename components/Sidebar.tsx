@@ -19,7 +19,7 @@ const Sidebar = ({ isOpen, onClose, cases, onLoadCase, onDeleteCase, onViewAll }
       case 'completed':
         return 'bg-green-100 text-green-700';
       case 'ongoing':
-        return 'bg-blue-100 text-blue-700';
+        return 'bg-primary-100 text-primary-700';
       case 'diagnostic':
         return 'bg-yellow-100 text-yellow-700';
       default:
@@ -75,7 +75,7 @@ const Sidebar = ({ isOpen, onClose, cases, onLoadCase, onDeleteCase, onViewAll }
                 onViewAll();
                 onClose();
               }}
-              className="w-full px-4 py-3 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 transition-colors flex items-center justify-center gap-2"
+              className="w-full px-4 py-3 bg-primary-400 text-brand-black rounded-lg font-semibold hover:bg-primary-500 hover:text-white transition-colors flex items-center justify-center gap-2"
             >
               <LayoutGrid className="w-5 h-5" />
               View All Cases

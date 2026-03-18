@@ -579,7 +579,7 @@ export default function Home() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <div className="w-16 h-16 border-4 border-primary-400 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-gray-600">Loading SaluLink Chronic App...</p>
         </div>
       </div>
@@ -587,7 +587,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-primary-50">
       {showAllCases && (
         <AllCasesView
           cases={store.cases}
@@ -598,7 +598,7 @@ export default function Home() {
       )}
 
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
+      <header className="bg-white border-b border-primary-200 sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center gap-4">
@@ -638,7 +638,7 @@ export default function Home() {
         {currentWorkflow === 'new' && (
           <>
             {/* Progress Steps */}
-            <div className="mb-8 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="mb-8 bg-white rounded-xl shadow-sm border border-primary-200 p-6">
               <div className="flex items-center justify-between">
                 {steps.map((step, index) => (
                   <div key={step.id} className="flex items-center flex-1">
@@ -648,7 +648,7 @@ export default function Home() {
                           store.currentStep > step.id
                             ? 'bg-green-500 text-white'
                             : store.currentStep === step.id
-                            ? 'bg-primary-600 text-white'
+                            ? 'bg-primary-400 text-brand-black'
                             : 'bg-gray-200 text-gray-600'
                         }`}
                       >
@@ -663,7 +663,7 @@ export default function Home() {
                       }`}>
                         {step.title}
                         {step.id === 4 && store.currentStep === 4 && (
-                          <span className="block text-xs text-primary-600 mt-0.5">
+                          <span className="block text-xs text-primary-500 mt-0.5">
                             {store.medicationSubstep === 1 ? '(Selection)' : '(Registration Note)'}
                           </span>
                         )}
@@ -908,7 +908,7 @@ export default function Home() {
                 </label>
                 <input
                   type="text"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400 transition-colors"
                   placeholder="Enter patient name"
                   value={patientName}
                   onChange={(e) => setPatientName(e.target.value)}
@@ -921,7 +921,7 @@ export default function Home() {
                 </label>
                 <input
                   type="text"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400 transition-colors"
                   placeholder="Enter patient ID or MRN"
                   value={patientId}
                   onChange={(e) => setPatientId(e.target.value)}
@@ -934,7 +934,7 @@ export default function Home() {
                 </label>
                 <input
                   type="email"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400 transition-colors"
                   placeholder="patient@example.com"
                   value={patientEmail}
                   onChange={(e) => setPatientEmail(e.target.value)}
@@ -947,7 +947,7 @@ export default function Home() {
                 </label>
                 <input
                   type="tel"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400 transition-colors"
                   placeholder="+27 XX XXX XXXX"
                   value={patientPhone}
                   onChange={(e) => setPatientPhone(e.target.value)}
@@ -971,14 +971,14 @@ export default function Home() {
                 <button
                   onClick={() => handleSaveCase(false)}
                   disabled={isSaving}
-                  className="w-full py-2.5 px-4 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full py-2.5 px-4 bg-primary-400 text-brand-black font-medium rounded-lg hover:bg-primary-500 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Export as PDF
                 </button>
                 <button
                   onClick={() => handleSaveCase(true)}
                   disabled={isSaving}
-                  className="w-full py-2.5 px-4 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full py-2.5 px-4 bg-accent-600 text-white font-medium rounded-lg hover:bg-accent-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Export with Attachments (ZIP)
                 </button>
