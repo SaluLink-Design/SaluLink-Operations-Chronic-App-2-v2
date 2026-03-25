@@ -605,7 +605,7 @@ export default function Home() {
               <img
                 src="/3.svg"
                 alt="SaluLink Logo"
-                className="h-20 w-auto"
+                className="h-28 w-auto"
               />
               <div>
                 <p className="text-xl font-bold text-gray-800 tracking-tight">Chronic Treatment App</p>
