@@ -90,7 +90,22 @@ npm install
 # cp "Chronic Conditions.csv" "Medicine List.csv" "Treatment Basket.csv" public/
 ```
 
-### 3. Python Backend Setup
+### 3. Frontend Environment Variables
+
+Create a `.env.local` file in the repository root with your Supabase credentials:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://ejfykjtfylxbbgyvjqfs.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVqZnlranRmeWx4YmJneXZqcWZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2NTY2NDIsImV4cCI6MjA5NDIzMjY0Mn0.v9EP0vr_RXeGplBVpvWC6IsiGPkUvPsnIdZ7mF2Ibfc
+
+# Optional server-side fallback
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your-anon-key
+```
+
+The frontend requires these credentials to connect to Supabase. If they are missing, the app will fail at startup.
+
+### 4. Python Backend Setup
 
 ```bash
 # Navigate to Python backend
